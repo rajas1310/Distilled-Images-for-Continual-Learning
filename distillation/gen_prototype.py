@@ -4,7 +4,7 @@ Author: Su Duo & Houjunjie
 Date: 2023.9.21
 '''
 
-from diffusers import StableDiffusionGenLatentsPipeline
+from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_gen_latents import StableDiffusionGenLatentsPipeline
 
 import torch
 import torchvision  
