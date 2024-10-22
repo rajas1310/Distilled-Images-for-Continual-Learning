@@ -38,6 +38,8 @@ def parse_args():
                         help='where to save the generated prototype json files')
     parser.add_argument('--strength', '-s', default=0.75, type=float, 
                         help='diffusers strength')
+    parser.add_argument('--task', type=int, 
+                        help='task ID')
     args = parser.parse_args()
     return args
 
@@ -64,7 +66,7 @@ def gen_syn_images(pipe, prototypes, label_list, args):
                 sub_pro_random = torch.randn((1, 4, 64, 64), device='cuda',dtype=torch.half)
                 images = pipe(prompt=prompt, latents=sub_pro, negative_prompt='cartoon, anime, painting', is_init=True, strength=args.strength, guidance_scale=args.guidance_scale).images
                 index = label_list.index(prompt)
-                save_path = os.path.join(args.save_init_image_path, "{}_ipc{}_{}_s{}_g{}_kmexpand{}".format(args.dataset, int(pros.size(0)), args.ipc, args.strength, args.guidance_scale, args.km_expand))
+                save_path = os.path.join(args.save_init_image_path, "{}_ipc{}_{}_s{}_g{}_kmexpand{}_task{}".format(args.dataset, int(pros.size(0)), args.ipc, args.strength, args.guidance_scale, args.km_expand,args.task))
                 os.makedirs(os.path.join(save_path, "{}/".format(index)), exist_ok=True)
                 images[0].resize((224, 224)).save(os.path.join(save_path, "{}/{}-image{}{}.png".format(index, index, i, j)))
 
@@ -74,7 +76,8 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # 1.obtain label-prompt list
-    label_dic = gen_label_list(args)
+    # label_dic = gen_label_list(args)
+    label_list = task_dict[args.dataset][args.task]
 
     # 2.define the diffusers pipeline
     pipe = StableDiffusionLatents2ImgPipeline.from_pretrained(args.diffusion_checkpoints_path, torch_dtype=torch.float16)
@@ -84,7 +87,7 @@ def main():
     prototypes = load_prototype(args)
 
     # 4.generate initialized synthetic images and save them for refine
-    gen_syn_images(pipe=pipe, prototypes=prototypes, label_list=label_dic, args=args)
+    gen_syn_images(pipe=pipe, prototypes=prototypes, label_list=label_list, args=args)
 
 
 if __name__ == "__main__" : 

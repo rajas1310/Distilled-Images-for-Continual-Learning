@@ -106,7 +106,7 @@ def gen_prototype(label_list, km_models):
 
 def save_prototype(prototype, args):
     os.makedirs(args.save_prototype_path, exist_ok=True)
-    json_file = os.path.join(args.save_prototype_path, f'{args.dataset}-ipc{args.ipc}-kmexpand{args.km_expand}.json')
+    json_file = os.path.join(args.save_prototype_path, f'{args.dataset}-ipc{args.ipc}-kmexpand{args.km_expand}-task{args.task}.json')
     with open(json_file, 'w') as f:
         json.dump(prototype, f)
     print(f"prototype json file saved at: {args.save_prototype_path}")
