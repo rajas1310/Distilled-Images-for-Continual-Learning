@@ -36,14 +36,16 @@ def parse_args():
                         help='image per class')
     parser.add_argument('--km_expand', default=10, type=int, 
                         help='expand ration for minibatch k-means model')
-    parser.add_argument('--label_file_path', default='/home-ext/tbw/suduo/data/imagenet_classes.txt', type=str, 
-                        help='root dir')
+    # parser.add_argument('--label_file_path', default='/home-ext/tbw/suduo/data/imagenet_classes.txt', type=str, 
+    #                     help='root dir')
     parser.add_argument('--num_workers', default=4, type=int, 
                         help='number of workers')
     parser.add_argument('--save_prototype_path', default='/home-ext/tbw/suduo/D3M/prototypes', type=str, 
                         help='where to save the generated prototype json files')
     parser.add_argument('--size', default=512, type=int, 
                         help='init resolution (resize)')
+    parser.add_argument('--task', type=int, 
+                        help='task ID')
     args = parser.parse_args()
     return args
 
@@ -69,6 +71,7 @@ def prototype_kmeans(pipe, data_loader, label_list, km_models, args):
 
         prompts = []
         for label in labels:
+            print("label : ", label.item())
             prompt = label_list[label.item()]
             prompts.append(prompt)
 
@@ -114,7 +117,8 @@ def main():
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     
     # 1.obtain label-prompt list
-    label_list = gen_label_list(args)
+    # label_list = gen_label_list(args)
+    label_list = task_dict[args.dataset][args.task]
 
     # 2.obtain training data
     trainloader, _ = load_dataset(args)
