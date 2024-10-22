@@ -72,7 +72,7 @@ def prototype_kmeans(pipe, data_loader, label_list, km_models, args):
         prompts = []
         for label in labels:
             # prompt = label_list[label.item()]
-            prompt = label2int[label.item()]
+            prompt = label2int[args.dataset][label.item()]
             prompts.append(prompt)
 
         init_latents, _ = pipe(prompt=prompts, image=images, strength=0.7, guidance_scale=8)
