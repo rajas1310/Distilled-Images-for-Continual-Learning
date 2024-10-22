@@ -30,8 +30,8 @@ def parse_args():
                         help='image per class')
     parser.add_argument('--km_expand', default=10, type=int, 
                         help='expand ration for minibatch k-means model')
-    parser.add_argument('--label_file_path', default='/home-ext/tbw/suduo/data/imagenet_classes.txt', type=str, 
-                        help='root dir')
+    # parser.add_argument('--label_file_path', default='/home-ext/tbw/suduo/data/imagenet_classes.txt', type=str, 
+    #                     help='root dir')
     parser.add_argument('--prototype_path', default='/home-ext/tbw/suduo/D3M/prototypes/imagenet-ipc1-kmexpand1.json', type=str, 
                         help='prototype path')
     parser.add_argument('--save_init_image_path', default='/home-ext/tbw/suduo/data/init_data/random', type=str, 
