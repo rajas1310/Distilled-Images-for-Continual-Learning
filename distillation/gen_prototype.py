@@ -71,7 +71,7 @@ def prototype_kmeans(pipe, data_loader, label_list, km_models, args):
 
         prompts = []
         for label in labels:
-            print("label : ", label.item())
+            # print("label : ", label.item())
             prompt = label_list[label.item()]
             prompts.append(prompt)
 
@@ -115,6 +115,8 @@ def save_prototype(prototype, args):
 def main():
     args = parse_args()
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    print("Dataset:",args.dataset, " | Task_no:", args.task)
     
     # 1.obtain label-prompt list
     # label_list = gen_label_list(args)

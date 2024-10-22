@@ -11,6 +11,8 @@ import torchvision
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torchvision.utils import save_image, make_grid
+from tqdm import tqdm
+
 
 task_dict = {'cifar10' : { 0:['airplane','automobile'],
                             1:['bird','cat'],
@@ -97,8 +99,9 @@ def load_dataset(args):
                                        transform=transform_train)
     
     label_list = task_dict[args.dataset][args.task]
-    trainset = [(img,label) for (img, label) in trainset if label2int[args.dataset][label] in label_list]
-    testset = [(img,label) for (img, label) in testset if label2int[args.dataset][label] in label_list]
+
+    trainset = [(img,label) for (img, label) in tqdm(trainset, total=100, desc="Train-set traversed") if label2int[args.dataset][label] in label_list]
+    testset = [(img,label) for (img, label) in tqdm(testset, total=100, desc="Test-set traversed") if label2int[args.dataset][label] in label_list]
 
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=args.batch_size, shuffle=True,

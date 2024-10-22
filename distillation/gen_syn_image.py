@@ -75,6 +75,8 @@ def main():
     args = parse_args()
     args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+    print("Dataset:",args.dataset, " | Task_no:", args.task)
+
     # 1.obtain label-prompt list
     # label_dic = gen_label_list(args)
     label_list = task_dict[args.dataset][args.task]
