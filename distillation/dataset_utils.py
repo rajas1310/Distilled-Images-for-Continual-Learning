@@ -24,9 +24,9 @@ def load_dataset(args):
             transforms.ToTensor(),
             transforms.Normalize((0.491, 0.482, 0.447), (0.202, 0.199, 0.201))
         ])
-        trainset = datasets.CIFAR10(root=args.data_dir, train=True, download=False,
+        trainset = datasets.CIFAR10(root=args.data_dir, train=True, download=True,
                                     transform=transform_train)
-        testset = datasets.CIFAR10(root=args.data_dir, train=False, download=False,
+        testset = datasets.CIFAR10(root=args.data_dir, train=False, download=True,
                                    transform=transform_test)
     elif args.dataset == 'cifar100':
         transform_test = transforms.Compose([

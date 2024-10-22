@@ -1,4 +1,4 @@
-from diffusers import StableDiffusionLatents2ImgPipeline
+from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion_latents2img import StableDiffusionLatents2ImgPipeline
 
 import torch
 import torchvision  
