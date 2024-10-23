@@ -1,7 +1,3 @@
-#!/bin/bash
-conda init bash\
-conda activate D4M \
-
 CUDA_VISIBLE_DEVICES=0 python gen_prototype.py \
     --batch_size 10 \
     --data_dir ../../cifar10 \
