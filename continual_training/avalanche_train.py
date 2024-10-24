@@ -54,7 +54,7 @@ print(args, '\n')
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir, exist_ok=True)
     
-sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}.txt'.format(args.dataset, args.strategy)))
+sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs)))
 
 model = ResNet(args)
 scenario = CustomOriginalDataset(args).get_scenario()
@@ -108,7 +108,7 @@ for experience in scenario.train_stream:
     res = cl_strategy.train(experience, num_workers = args.num_workers)
     print('Training completed')
 
-    # save_checkpoint(cl_strategy, f'{args.output_dir}/checkpt_{args.dataset}_task{len(results)}.pkl')
+    # save_checkpoint(cl_strategy, f'{args.output_dir}/checkpt_{args.dataset}_task{len(results)}_eps{args.epochs}.pkl')
 
     print('Computing accuracy on the whole test set')
     results.append(cl_strategy.eval(scenario.test_stream))

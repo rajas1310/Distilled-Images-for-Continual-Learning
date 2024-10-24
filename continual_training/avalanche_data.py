@@ -87,8 +87,7 @@ class CustomOriginalDataset():
 
     def get_scenario(self):
         scenario = nc_benchmark(
-            self.trainset, self.testset, n_experiences=len(self.task_dict), per_exp_classes=self.task_dict, shuffle=True, seed=1234,
-            task_labels=True
+            self.trainset, self.testset, n_experiences=len(self.task_dict), per_exp_classes=self.task_dict, shuffle=False, task_labels=True
         )
         print("Trainset : ", len(self.trainset), "Testset : ", len(self.testset))
         return scenario
