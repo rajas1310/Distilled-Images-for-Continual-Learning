@@ -54,7 +54,7 @@ print(args, '\n')
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir, exist_ok=True)
     
-sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}.txt'.format(args.data, args.strategy)))
+sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}.txt'.format(args.dataset, args.strategy)))
 
 model = ResNet(args)
 scenario = CustomOriginalDataset(args).get_scenario()
