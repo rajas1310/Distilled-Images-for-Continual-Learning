@@ -12,13 +12,13 @@ class ResNet(nn.Module):
         self.model_name = model_name
 
         self.net = torch.hub.load('pytorch/vision:v0.10.0', self.model_name, pretrained=True)
-        self.linear = nn.Linear(512, args.num_classes)
+        self.net.fc = nn.Linear(512, args.num_classes)
         self.net.to(self.device)
-        self.linear.to(self.device)
+        # self.linear.to(self.device)
 
     def forward(self, x):
-        x = self.net(x).avgpool
-        return self.linear(x)
+        x = self.net(x)
+        return x
 
     def print_trainable_parameters(self):
         trainable_params = 0
