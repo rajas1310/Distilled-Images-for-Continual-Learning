@@ -14,6 +14,9 @@ from avalanche_data import CustomOriginalDataset, ResNet
 from transformers import AutoImageProcessor
 import argparse
 
+import sys, os
+from logger_utils import Logger
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-e', '--epochs', type=int, default=50)
@@ -46,6 +49,11 @@ if args.num_classes == None:
         args.num_classes = 196
 
 print(args, '\n')
+
+if not os.path.exists(args.output_dir):
+    os.makedirs(args.output_dir, exist_ok=True)
+    
+sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}.txt'.format(args.data, args.strategy)))
 
 model = ResNet(args)
 scenario = CustomOriginalDataset(args).get_scenario()
