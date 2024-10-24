@@ -9,7 +9,7 @@ from avalanche.evaluation.metrics import forgetting_metrics, accuracy_metrics,\
     loss_metrics, timing_metrics, cpu_usage_metrics, StreamConfusionMatrix,\
     disk_usage_metrics, gpu_usage_metrics
 
-from avalanche_data import CustomDataset, ResNet
+from avalanche_data import CustomOriginalDataset, ResNet
 
 from transformers import AutoImageProcessor
 import argparse
@@ -48,7 +48,7 @@ if args.num_classes == None:
 print(args, '\n')
 
 model = ResNet(args)
-scenario = CustomDataset(args).get_scenario()
+scenario = CustomOriginalDataset(args).get_scenario()
 
 text_logger = TextLogger(open(f'log_{args.data}_{args.strategy}.txt', 'a'))
 interactive_logger = InteractiveLogger()
