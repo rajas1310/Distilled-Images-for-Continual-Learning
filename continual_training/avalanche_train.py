@@ -28,7 +28,7 @@ parser.add_argument('--device', type=str, default="cuda:0")
 
 parser.add_argument('--strategy', type=str, default="replay")
 
-parser.add_argument('-d', '--data', type=str, default='cifar10')
+parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='../../data')
 parser.add_argument('-odir', '--output-dir', type=str, default='./output')
 args = parser.parse_args()
@@ -38,11 +38,11 @@ args = parser.parse_args()
 
 
 if args.num_classes == None:
-    if args.data == 'mnist' or args.data == 'cifar10':
+    if args.dataset == 'mnist' or args.dataset == 'cifar10':
         args.num_classes = 10
-    elif args.data == 'imagenet':
+    elif args.dataset == 'imagenet':
         args.num_classes = 1000
-    elif args.data == 'stanfordcars':
+    elif args.dataset == 'stanfordcars':
         args.num_classes = 196
 
 print(args, '\n')
@@ -50,7 +50,7 @@ print(args, '\n')
 model = ResNet(args)
 scenario = CustomOriginalDataset(args).get_scenario()
 
-text_logger = TextLogger(open(f'log_{args.data}_{args.strategy}.txt', 'a'))
+text_logger = TextLogger(open(f'log_{args.dataset}_{args.strategy}.txt', 'a'))
 interactive_logger = InteractiveLogger()
 
 eval_plugin = EvaluationPlugin(
