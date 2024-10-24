@@ -65,8 +65,8 @@ class CustomOriginalDataset():
                                     transform=self.train_transform)
             self.testset = datasets.CIFAR10(root=self.args.data_dir, train=False, download=True,
                                    transform=self.test_transform)
-            self.trainset.targets = self.trainset._labels
-            self.testset.targets = self.testset._labels
+            # self.trainset.targets = self.trainset._labels
+            # self.testset.targets = self.testset._labels
             self.task_dict = {0:2, 1:2, 2:2, 3:2, 4:2} # task_id : num_classes
 
         elif self.args.dataset == 'mnist':
@@ -74,8 +74,8 @@ class CustomOriginalDataset():
                                     transform=self.train_transform)
             self.testset = datasets.MNIST(root=self.args.data_dir, train=False, download=True,
                                    transform=self.test_transform)
-            self.trainset.targets = self.trainset._labels
-            self.testset.targets = self.testset._labels
+            # self.trainset.targets = self.trainset._labels
+            # self.testset.targets = self.testset._labels
             self.task_dict = {0:2, 1:2, 2:2, 3:2, 4:2} # task_id : num_classes
 
         elif self.args.dataset == 'imagenet':
