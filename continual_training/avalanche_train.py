@@ -13,11 +13,10 @@ from avalanche.checkpointing import maybe_load_checkpoint, save_checkpoint
 
 from avalanche_data import CustomOriginalDataset, ResNet
 
-from transformers import AutoImageProcessor
 import argparse
 
 import sys, os
-from ..logger_utils import Logger
+from D4M.logger_utils import Logger
 
 parser = argparse.ArgumentParser()
 
