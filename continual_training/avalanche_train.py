@@ -17,7 +17,7 @@ from transformers import AutoImageProcessor
 import argparse
 
 import sys, os
-from logger_utils import Logger
+from ..logger_utils import Logger
 
 parser = argparse.ArgumentParser()
 
