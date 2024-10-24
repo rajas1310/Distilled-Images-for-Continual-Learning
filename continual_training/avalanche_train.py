@@ -109,7 +109,7 @@ for experience in scenario.train_stream:
     res = cl_strategy.train(experience, num_workers = args.num_workers)
     print('Training completed')
 
-    save_checkpoint(cl_strategy, f'checkpt_{args.dataset}_task{len(results)}.pkl')
+    save_checkpoint(cl_strategy, f'{args.output_dir}/checkpt_{args.dataset}_task{len(results)}.pkl')
 
     print('Computing accuracy on the whole test set')
     results.append(cl_strategy.eval(scenario.test_stream))
