@@ -16,7 +16,11 @@ from avalanche_data import CustomOriginalDataset, ResNet
 import argparse
 
 import sys, os
+from datetime import datetime
+import logging
 from logger_utils import Logger
+
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 
@@ -54,12 +58,16 @@ print(args, '\n')
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir, exist_ok=True)
     
-sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs)))
+# sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs)))
+timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+log_filename = os.path.join(args.output_dir, 'logs-{}-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs, timestamp))
+# logging.basicConfig(filename=log_filename, level=logging.INFO)
+
 
 model = ResNet(args)
 scenario = CustomOriginalDataset(args).get_scenario()
 
-text_logger = TextLogger(open(f'log_{args.dataset}_{args.strategy}.txt', 'a'))
+text_logger = TextLogger(open(log_filename, 'a'))
 interactive_logger = InteractiveLogger()
 
 eval_plugin = EvaluationPlugin(
@@ -112,4 +120,4 @@ for experience in scenario.train_stream:
 
     print('Computing accuracy on the whole test set')
     results.append(cl_strategy.eval(scenario.test_stream))
-    print(results[-1])
+    # print(results[-1])
