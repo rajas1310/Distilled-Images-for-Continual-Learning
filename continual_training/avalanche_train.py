@@ -3,8 +3,8 @@ import torch.nn as nn
 
 import numpy as np
 from avalanche.training.supervised import Replay, AGEM, EWC  # and many more!
-from avalanche.logging import TextLogger, InteractiveLogger
-from avalanche.training.plugins import EvaluationPlugin
+from avalanche.logging import TextLogger, InteractiveLogger, WandBLogger
+from avalanche.training.plugins import EvaluationPlugin, EarlyStoppingPlugin
 from avalanche.evaluation.metrics import forgetting_metrics, accuracy_metrics,\
     loss_metrics, timing_metrics, cpu_usage_metrics, StreamConfusionMatrix,\
     disk_usage_metrics, gpu_usage_metrics
@@ -67,6 +67,7 @@ scenario = CustomOriginalDataset(args).get_scenario()
 
 text_logger = TextLogger(open(log_filename, 'a'))
 interactive_logger = InteractiveLogger()
+wandb_logger = WandBLogger(project_name="DL566-project", run_name="logs-{}-{}-{}-{}".format(args.dataset, args.strategy, args.epochs, timestamp))
 
 eval_plugin = EvaluationPlugin(
     accuracy_metrics(minibatch=False, epoch=True, experience=True, stream=True),
@@ -76,7 +77,7 @@ eval_plugin = EvaluationPlugin(
     forgetting_metrics(experience=True, stream=True),
     # StreamConfusionMatrix(num_classes=args.num_classes, save_image=False),
     # disk_usage_metrics(minibatch=True, epoch=True, experience=True, stream=True),
-    loggers=[text_logger, interactive_logger]
+    loggers=[text_logger, interactive_logger, wandb_logger]
 )
 
 optimizer = torch.optim.Adam(
@@ -84,10 +85,12 @@ optimizer = torch.optim.Adam(
         )
 criterion = nn.CrossEntropyLoss()
 
-if args.strategy == 'replay':
+if args.strategy == 'replay': # default memory size = 200 images
     cl_strategy = Replay(
         model, optimizer, criterion,
-        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device
+        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device,
+        plugins=[EarlyStoppingPlugin(patience=10, val_stream_name='train')]
+
     )
 elif args.strategy == 'agem':
     cl_strategy = AGEM(
