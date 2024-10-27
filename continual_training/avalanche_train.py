@@ -89,7 +89,7 @@ if args.strategy == 'replay': # default memory size = 200 images
     cl_strategy = Replay(
         model, optimizer, criterion,
         train_mb_size=args.batch_size, train_epochs=args.epochs, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device,
-        plugins=[EarlyStoppingPlugin(patience=10, val_stream_name='train')]
+        # plugins=[EarlyStoppingPlugin(patience=10, val_stream_name='test')]
 
     )
 elif args.strategy == 'agem':
