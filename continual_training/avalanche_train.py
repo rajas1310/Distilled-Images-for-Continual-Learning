@@ -65,9 +65,10 @@ log_filename = os.path.join(args.output_dir, 'logs-{}-{}-{}-{}.txt'.format(args.
 model = ResNet(args)
 scenario = CustomOriginalDataset(args).get_scenario()
 
-text_logger = TextLogger(open(log_filename, 'a'))
-interactive_logger = InteractiveLogger()
-wandb_logger = WandBLogger(project_name="DL566-project", run_name="logs-{}-{}-{}-{}".format(args.dataset, args.strategy, args.epochs, timestamp))
+loggers = []
+loggers.append(TextLogger(open(log_filename, 'a')))
+loggers.append(InteractiveLogger())
+# loggers.append( WandBLogger(project_name="DL566-project", run_name="logs-{}-{}-{}-{}".format(args.dataset, args.strategy, args.epochs, timestamp)))
 
 eval_plugin = EvaluationPlugin(
     accuracy_metrics(minibatch=False, epoch=True, experience=True, stream=True),
@@ -77,7 +78,7 @@ eval_plugin = EvaluationPlugin(
     forgetting_metrics(experience=True, stream=True),
     # StreamConfusionMatrix(num_classes=args.num_classes, save_image=False),
     # disk_usage_metrics(minibatch=True, epoch=True, experience=True, stream=True),
-    loggers=[text_logger, interactive_logger, wandb_logger]
+    loggers=loggers
 )
 
 optimizer = torch.optim.Adam(
