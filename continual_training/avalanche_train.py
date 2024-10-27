@@ -18,7 +18,7 @@ import argparse
 import sys, os
 from datetime import datetime
 import logging
-from logger_utils import Logger
+# from logger_utils import Logger
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +61,6 @@ if not os.path.exists(args.output_dir):
 # sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs)))
 timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 log_filename = os.path.join(args.output_dir, 'logs-{}-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs, timestamp))
-# logging.basicConfig(filename=log_filename, level=logging.INFO)
-
 
 model = ResNet(args)
 scenario = CustomOriginalDataset(args).get_scenario()
