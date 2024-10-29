@@ -6,10 +6,10 @@ from transformers import ViTModel
 import torch.nn as nn
 
 class ResNet(nn.Module):
-    def __init__(self, args, model_name='resnet18'):
+    def __init__(self, args):
         super().__init__()
         self.device = args.device
-        self.model_name = model_name
+        self.model_name = args.model
 
         self.net = torch.hub.load('pytorch/vision:v0.10.0', self.model_name, pretrained=True)
         self.net.fc = nn.Linear(512, args.num_classes)

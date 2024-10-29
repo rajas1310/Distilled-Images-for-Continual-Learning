@@ -39,6 +39,7 @@ parser.add_argument('--strategy', type=str, default="replay")
 parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='../../data')
 parser.add_argument('-odir', '--output-dir', type=str, default='./output')
+parser.add_argument('-m', '--model', type=str, default='resnet50')
 args = parser.parse_args()
 
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
