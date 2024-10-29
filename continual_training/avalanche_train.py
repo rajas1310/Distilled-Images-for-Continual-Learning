@@ -57,11 +57,11 @@ if args.num_classes == None:
 print(args, '\n')
 
 if not os.path.exists(args.output_dir):
-    os.makedirs(args.output_dir, exist_ok=True)
+    os.makedirs(f'{args.output_dir}/{args.model}', exist_ok=True)
     
 # sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs)))
 timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-log_filename = os.path.join(args.output_dir, 'logs-{}-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs, timestamp))
+log_filename = os.path.join(args.output_dir, args.model, 'logs-{}-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs, timestamp))
 
 model = ResNet(args)
 scenario = CustomOriginalDataset(args).get_scenario()
