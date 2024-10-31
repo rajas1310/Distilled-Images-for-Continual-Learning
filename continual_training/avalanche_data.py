@@ -4,10 +4,7 @@ from avalanche.benchmarks.scenarios.deprecated.generators import nc_benchmark
 import torch
 import torch.nn as nn
 import os
-from torchvision.datasets import DatasetFolder
-from torchvision.io import read_image
 from torch.utils.data import Subset
-import random
 class ResNet(nn.Module):
     def __init__(self, args, model_name='resnet18'):
         super().__init__()
@@ -33,7 +30,7 @@ class ResNet(nn.Module):
         print(
             f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param:.2f}"
         )
-
+    
 class CustomSyntheticDataset():
     def __init__(self, args):
         self.args = args
@@ -48,67 +45,85 @@ class CustomSyntheticDataset():
             image_mean = (0.485, 0.456, 0.406)
             image_std = (0.229, 0.224, 0.225)
 
-        self.transform =  transforms.Compose([
-                                transforms.Normalize(mean=image_mean, std=image_std)
-                                ]) 
+        self.train_transform =  transforms.Compose([
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=image_mean, std=image_std)
+                    ]) 
+        self.test_transform = transforms.Compose([
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=image_mean, std=image_std)
+                    ])
+        self.task_dict = {
+            'cifar10': {
+                0: ['airplane', 'automobile'],
+                1: ['bird', 'cat'],
+                2: ['deer', 'dog'],
+                3: ['frog', 'horse'],
+                4: ['ship', 'truck']
+            }
+        }
         self.set_data_variables()
-    
-    def load_image_as_tensor(self, path):
-        return read_image(path).float() / 255.0  # Normalize pixel values to [0, 1]
 
     def set_data_variables(self):
         if self.args.dataset == 'cifar10':
-            self.task_dict = {0:2, 1:2, 2:2, 3:2, 4:2}
 
-            self.train_datasets = []
-            self.test_datasets = []
+            self.trainset = []
+            self.testset = []
 
-            train_ratio = 0.8
-
-            for stage in range(len(self.task_dict)):
+            for stage in range(len(self.task_dict['cifar10'])):
                 stage_dir = os.path.join(self.args.data_dir, f"task{stage}")
                 
-                full_dataset = DatasetFolder(
-                root=stage_dir,
-                loader=self.load_image_as_tensor,
-                extensions=("png"),
-                transform=self.transform
+                train_dataset = datasets.ImageFolder(
+                    root=stage_dir,
+                    transform=self.train_transform
                 )
-                class_indices = {}
-                for idx, (_, label) in enumerate(full_dataset):
-                    if label not in class_indices:
-                        class_indices[label] = []
-                    class_indices[label].append(idx)
-                train_indices = []
-                test_indices = []
-                for label, indices in class_indices.items():
-                    random.shuffle(indices)
-                    split_point = int(len(indices) * train_ratio)
-                    train_indices.extend(indices[:split_point])
-                    test_indices.extend(indices[split_point:])
-                trainset = Subset(full_dataset, train_indices)
-                testset = Subset(full_dataset, test_indices)
+                self.trainset.append(train_dataset)
 
-                self.train_datasets.append(trainset)
-                self.test_datasets.append(testset)
-                
-            self.trainset = torch.utils.data.ConcatDataset(self.train_datasets)
-            self.testset = torch.utils.data.ConcatDataset(self.test_datasets)
+            cifar10_class_to_idx = {
+                'airplane': 0, 'automobile': 1, 'bird': 2, 'cat': 3,
+                'deer': 4, 'dog': 5, 'frog': 6, 'horse': 7, 'ship': 8, 'truck': 9
+            }
+
+            full_test_dataset = datasets.CIFAR10(
+                root=self.args.data_dir, train=False, download=True,
+                transform=self.test_transform
+            )
+            for stage, class_names in self.task_dict['cifar10'].items():
+                class_indices = [cifar10_class_to_idx[class_name] for class_name in class_names]
+                test_indices = [i for i, (_, label) in enumerate(full_test_dataset) if label in class_indices]
+                remapped_labels = torch.tensor([class_indices.index(full_test_dataset.targets[i]) for i in test_indices])
+                test_subset = Subset(full_test_dataset, test_indices)
+                test_subset.targets = remapped_labels
+                print(f"Stage {stage}, Classes: {class_names}, Unique Labels in Test Subset: {set(test_subset.targets.tolist())}")
+                self.testset.append(test_subset)
 
         elif self.args.dataset == 'mnist':
             pass
 
         elif self.args.dataset == 'imagenet':
             pass
-        
 
 
     def get_scenario(self):
-        scenario = nc_benchmark(
-            self.train_datasets, self.test_datasets, n_experiences=len(self.task_dict), per_exp_classes=self.task_dict, shuffle=False, task_labels=True
-        )
-        print("Trainset : ", len(self.trainset), "Testset : ", len(self.testset))
-        return scenario
+        if self.args.dataset == 'cifar10':
+            print("Trainset : ", len(self.trainset), "Testset : ", len(self.testset))
+            scenario = nc_benchmark(
+                self.trainset, self.testset, 
+                n_experiences=len(self.task_dict['cifar10']),
+                one_dataset_per_exp = True,
+                class_ids_from_zero_in_each_exp = True,
+                # per_exp_classes={i: len(classes) for i, classes in self.task_dict['cifar10'].items()},
+                shuffle=False,
+                task_labels=True
+            )
+            return scenario
+        
+        elif self.args.dataset == 'mnist':
+            pass
+
+        elif self.args.dataset == 'imagenet':
+            pass
 
 class CustomOriginalDataset():
     def __init__(self, args):
