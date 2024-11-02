@@ -4,6 +4,8 @@ from avalanche.benchmarks.scenarios.deprecated.generators import nc_benchmark
 import torch
 from transformers import ViTModel
 import torch.nn as nn
+from torch.utils.data import ConcatDataset
+import glob
 
 class ResNet(nn.Module):
     def __init__(self, args):
@@ -58,10 +60,13 @@ class CustomSyntheticDataset():
 
     def set_data_variables(self):
         if self.args.dataset == 'cifar10':
-            self.trainset = datasets.ImageFolder(
-                root=self.args.data_dir,
-                transform=self.train_transform
-            )
+            trainsets = []
+            for task_dir in glob.glob(f'{self.args.data_dir}/task*'):
+                trainsets.append(datasets.ImageFolder(
+                    root=task_dir,
+                    transform=self.train_transform
+                ))
+            self.trainset = ConcatDataset(trainsets)
 
             self.testset = datasets.CIFAR10(
                 root="../../cifar10", train=False, download=True,
