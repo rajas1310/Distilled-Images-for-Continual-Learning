@@ -73,6 +73,8 @@ testset = datasets.CIFAR10(root=args.data_dir, train=False, download=True,
                                 transforms.Normalize(mean= (0.491, 0.482, 0.447), std=(0.202, 0.199, 0.201))
                                 ]))
 
+print("Trainset samples:", len(trainset), "Test samples:", len(testset))
+
 train_loader = torch.utils.data.DataLoader(
         trainset, batch_size=args.batch_size, shuffle=True,
         num_workers=args.num_workers
