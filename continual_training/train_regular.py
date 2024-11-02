@@ -11,7 +11,7 @@ import numpy as np
 from torch.utils.data import Dataset
 import torch.nn as nn
 from datetime import datetime
-
+from logger_utils import Logger
 import argparse
 
 from tqdm import tqdm
@@ -60,6 +60,7 @@ if not os.path.exists(args.output_dir):
 timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 log_filename = os.path.join(args.output_dir, 'logs-{}-Offline-{}-{}.txt'.format(args.dataset,  args.epochs, timestamp))
 
+sys.stdout = Logger(log_filename)
 
 
 model = ResNet(args)
