@@ -1,0 +1,4 @@
+python continual_training/avalanche_train.py --epochs 50 --batch-size 32 -nw 8 --strategy "replay" --dataset "cifar10" --data-dir ../../cifar10
+
+
+python continual_training/avalanche_train_sythetic.py --epochs 50 --batch-size 32 -nw 8 --strategy "replay" --dataset "cifar10" --data-dir data/distilled_data/cifar10_ipc10_20_s0.7_g8.0_kmexpand1/

@@ -11,8 +11,8 @@ class ResNet(nn.Module):
         self.device = args.device
         self.model_name = args.model
 
-        self.net = torch.hub.load('pytorch/vision:v0.10.0', self.model_name, pretrained=True)
-        self.net.fc = nn.Linear(512, args.num_classes)
+        self.net = torch.hub.load('pytorch/vision:v0.10.0', self.model_name, pretrained=True, num_classes=args.num_classes)
+        # self.net.fc = nn.Linear(512, args.num_classes)
         self.net.to(self.device)
         # self.linear.to(self.device)
 

@@ -1,30 +1,24 @@
+import torchvision.datasets as datasets
 import torch
-import torch.nn as nn
-
-import numpy as np
-from avalanche.training.supervised import Replay, AGEM, EWC  # and many more!
+from avalanche_data import ResNet, CustomSyntheticDataset, CustomOriginalDataset
+from avalanche.training.supervised import JointTraining
 from avalanche.logging import TextLogger, InteractiveLogger, WandBLogger
 from avalanche.training.plugins import EvaluationPlugin, EarlyStoppingPlugin
 from avalanche.evaluation.metrics import forgetting_metrics, accuracy_metrics,\
     loss_metrics, timing_metrics, cpu_usage_metrics, StreamConfusionMatrix,\
     disk_usage_metrics, gpu_usage_metrics
-
-from avalanche.checkpointing import maybe_load_checkpoint, save_checkpoint
-
-from avalanche_data import CustomOriginalDataset, ResNet
+import torch.nn as nn
+from datetime import datetime
 
 import argparse
 
 import sys, os
-from datetime import datetime
-import logging
-# from logger_utils import Logger
 
-logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-e', '--epochs', type=int, default=50)
+parser.add_argument('-e', '--eval-epochs', type=int, default=0)
 parser.add_argument('-bs', '--batch-size', type=int, default=16)
 parser.add_argument('-lr', '--lr', type=float, default=5e-6)
 parser.add_argument('-wd', '--weight-decay', type=float, default=1e-6)
@@ -34,13 +28,10 @@ parser.add_argument('-nw','--num-workers', type=int, default=2)
 parser.add_argument('--device', type=str, default="cuda:0")
 # parser.add_argument('--seed', type=int, default=42)
 
-parser.add_argument('--strategy', type=str, default="replay")
-
 parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='../../data')
 parser.add_argument('-odir', '--output-dir', type=str, default='./output')
 parser.add_argument('-m', '--model', type=str, default='resnet18')
-
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
 args = parser.parse_args()
 
@@ -62,10 +53,15 @@ if not os.path.exists(args.output_dir):
     
 # sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs)))
 timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-log_filename = os.path.join(args.output_dir, 'logs-{}-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs, timestamp))
+log_filename = os.path.join(args.output_dir, 'logs-{}-Offline-{}-{}.txt'.format(args.dataset,  args.epochs, timestamp))
 
 model = ResNet(args)
-scenario = CustomOriginalDataset(args).get_scenario()
+scenario = CustomSyntheticDataset(args).get_scenario()
+
+optimizer = torch.optim.Adam(
+            params=model.parameters(), lr=args.lr, weight_decay=args.weight_decay
+        )
+criterion = nn.CrossEntropyLoss()
 
 loggers = []
 loggers.append(TextLogger(open(log_filename, 'a')))
@@ -78,50 +74,27 @@ eval_plugin = EvaluationPlugin(
     # timing_metrics(epoch=True),
     # cpu_usage_metrics(experience=True),
     # forgetting_metrics(experience=True, stream=True),
-    # StreamConfusionMatrix(num_classes=args.num_classes, save_image=False),
+    StreamConfusionMatrix(num_classes=args.num_classes, save_image=True),
     # disk_usage_metrics(minibatch=True, epoch=True, experience=True, stream=True),
     loggers=loggers
 )
 
-optimizer = torch.optim.Adam(
-            params=model.parameters(), lr=args.lr, weight_decay=args.weight_decay
-        )
-criterion = nn.CrossEntropyLoss()
-
-if args.strategy == 'replay': # default memory size = 200 images
-    cl_strategy = Replay(
-        model, optimizer, criterion,
-        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_every=2, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device,
-        # plugins=[EarlyStoppingPlugin(patience=10, val_stream_name='test')]
-
+# Joint training strategy
+joint_train = JointTraining(
+        model,
+        optimizer,
+        criterion,
+        train_mb_size=32,
+        train_epochs=args.epochs,
+        eval_mb_size=32,
+        device=args.device,
+        eval_every= args.eval_epochs
     )
-elif args.strategy == 'agem':
-    cl_strategy = AGEM(
-        model, optimizer, criterion,
-        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_every=2, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device,
-        patterns_per_exp = 100
-    )
-elif args.strategy == 'ewc':
-    cl_strategy = EWC(
-        model, optimizer, criterion,
-        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device
-    )
-else:
-    ValueError()
 
-
-# TRAINING LOOP
-print('Starting experiment...')
+# train and test loop
 results = []
-for experience in scenario.train_stream:
-    print("Start of experience: ", experience.current_experience)
-    print("Current Classes: ", experience.classes_in_this_experience)
-
-    res = cl_strategy.train(experience, num_workers = args.num_workers)
-    print('Training completed')
-
-    # save_checkpoint(cl_strategy, f'{args.output_dir}/checkpt_{args.dataset}_task{len(results)}_eps{args.epochs}.pkl')
-
-    print('Computing accuracy on the whole test set')
-    results.append(cl_strategy.eval(scenario.test_stream))
-    # print(results[-1])
+print("Starting training.")
+# Differently from other avalanche strategies, you NEED to call train
+# on the entire stream.
+joint_train.train(scenario.train_stream)
+results.append(joint_train.eval(scenario.test_stream))
