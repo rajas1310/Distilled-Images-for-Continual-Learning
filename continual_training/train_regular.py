@@ -18,7 +18,7 @@ import sys, os
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-e', '--epochs', type=int, default=50)
-parser.add_argument('-e', '--eval-epochs', type=int, default=0)
+parser.add_argument('--eval-epochs', type=int, default=0)
 parser.add_argument('-bs', '--batch-size', type=int, default=16)
 parser.add_argument('-lr', '--lr', type=float, default=5e-6)
 parser.add_argument('-wd', '--weight-decay', type=float, default=1e-6)
