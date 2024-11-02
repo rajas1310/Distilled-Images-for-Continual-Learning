@@ -39,7 +39,7 @@ class ImageDataset(Dataset):
     def __init__(self, args, split='train'):
         super().__init__()
         self.args = args
-        self.image_list = glob.glob(f'{args.data_dir}/*/*/*')
+        self.image_list = glob.glob(f'{args.data_dir}/task*/*/*')
         self.label_list = [int(Path(x).parent.stem) for x in self.image_list]
 
         if args.dataset == 'cifar10':

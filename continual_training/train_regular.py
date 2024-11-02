@@ -13,6 +13,7 @@ import torch.nn as nn
 from datetime import datetime
 from logger_utils import Logger
 import argparse
+from torchvision import datasets, transforms
 
 from tqdm import tqdm
 
@@ -66,7 +67,11 @@ sys.stdout = Logger(log_filename)
 model = ResNet(args)
 # scenario = CustomSyntheticDataset(args).get_scenario()
 trainset = ImageDataset(args, split="train")
-testset = ImageDataset(args, split="test")
+testset = datasets.CIFAR10(root=args.data_dir, train=False, download=True,
+                                   transform=transforms.Compose([
+                                transforms.ToTensor(),
+                                transforms.Normalize(mean= (0.491, 0.482, 0.447), std=(0.202, 0.199, 0.201))
+                                ]))
 
 train_loader = torch.utils.data.DataLoader(
         trainset, batch_size=args.batch_size, shuffle=True,
