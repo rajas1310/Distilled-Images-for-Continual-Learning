@@ -59,7 +59,7 @@ if not os.path.exists(args.output_dir):
     
 # sys.stdout = Logger(os.path.join(args.output_dir, 'logs-{}-{}-{}.txt'.format(args.dataset, args.strategy, args.epochs)))
 timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-log_filename = os.path.join(args.output_dir, 'logs-{}-Offline-{}-{}.txt'.format(args.dataset,  args.epochs, timestamp))
+log_filename = os.path.join(args.output_dir, 'logs-{}-OfflineSyn-{}-{}.txt'.format(args.dataset,  args.epochs, timestamp))
 
 sys.stdout = Logger(log_filename)
 
@@ -67,6 +67,12 @@ sys.stdout = Logger(log_filename)
 model = ResNet(args)
 # scenario = CustomSyntheticDataset(args).get_scenario()
 trainset = ImageDataset(args, split="train")
+# trainset = datasets.CIFAR10(root=args.data_dir, train=True, download=True,
+#                                    transform=transforms.Compose([
+#                                    transforms.RandomHorizontalFlip(),
+#                                 transforms.ToTensor(),
+#                                 transforms.Normalize(mean= (0.491, 0.482, 0.447), std=(0.202, 0.199, 0.201))
+#                                 ]))
 testset = datasets.CIFAR10(root=args.data_dir, train=False, download=True,
                                    transform=transforms.Compose([
                                 transforms.ToTensor(),
