@@ -19,6 +19,9 @@ from tqdm import tqdm
 
 import sys, os
 
+import torch.multiprocessing
+ 
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 parser = argparse.ArgumentParser()
 
@@ -62,6 +65,7 @@ timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 log_filename = os.path.join(args.output_dir, 'logs-{}-OfflineSyn-{}-{}.txt'.format(args.dataset,  args.epochs, timestamp))
 
 sys.stdout = Logger(log_filename)
+
 
 
 model = ResNet(args)
