@@ -1,16 +1,20 @@
 import torchvision.datasets as datasets
 import torch
-from avalanche_data import ResNet, CustomSyntheticDataset, CustomOriginalDataset
+from avalanche_data import ResNet, CustomSyntheticDataset, CustomOriginalDataset, ImageDataset
 from avalanche.training.supervised import JointTraining
 from avalanche.logging import TextLogger, InteractiveLogger, WandBLogger
 from avalanche.training.plugins import EvaluationPlugin, EarlyStoppingPlugin
 from avalanche.evaluation.metrics import forgetting_metrics, accuracy_metrics,\
     loss_metrics, timing_metrics, cpu_usage_metrics, StreamConfusionMatrix,\
     disk_usage_metrics, gpu_usage_metrics
+import numpy as np
+from torch.utils.data import Dataset
 import torch.nn as nn
 from datetime import datetime
 
 import argparse
+
+from tqdm import tqdm
 
 import sys, os
 
@@ -22,10 +26,11 @@ parser.add_argument('--eval-epochs', type=int, default=0)
 parser.add_argument('-bs', '--batch-size', type=int, default=16)
 parser.add_argument('-lr', '--lr', type=float, default=5e-6)
 parser.add_argument('-wd', '--weight-decay', type=float, default=1e-6)
-# parser.add_argument('-p', '--patience', type=int, default=10)
+parser.add_argument('-p', '--patience', type=int, default=10)
 parser.add_argument('-nw','--num-workers', type=int, default=2)
-# parser.add_argument('--test-interval', type=int, default=1)
 parser.add_argument('--device', type=str, default="cuda:0")
+parser.add_argument('--test-interval', type=int, default=1)
+
 # parser.add_argument('--seed', type=int, default=42)
 
 parser.add_argument('-d', '--dataset', type=str, default='cifar10')
@@ -55,46 +60,89 @@ if not os.path.exists(args.output_dir):
 timestamp = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
 log_filename = os.path.join(args.output_dir, 'logs-{}-Offline-{}-{}.txt'.format(args.dataset,  args.epochs, timestamp))
 
+
+
 model = ResNet(args)
-scenario = CustomSyntheticDataset(args).get_scenario()
+# scenario = CustomSyntheticDataset(args).get_scenario()
+trainset = ImageDataset(args, split="train")
+testset = ImageDataset(args, split="test")
+
+train_loader = torch.utils.data.DataLoader(
+        trainset, batch_size=args.batch_size, shuffle=True,
+        num_workers=args.num_workers
+    )
+test_loader = torch.utils.data.DataLoader(
+        testset, batch_size=args.batch_size, shuffle=False,
+        num_workers=args.num_workers
+    )
 
 optimizer = torch.optim.Adam(
             params=model.parameters(), lr=args.lr, weight_decay=args.weight_decay
         )
 criterion = nn.CrossEntropyLoss()
 
-loggers = []
-loggers.append(TextLogger(open(log_filename, 'a')))
-loggers.append(InteractiveLogger())
-# loggers.append( WandBLogger(project_name="DL566-project", run_name="logs-{}-{}-{}-{}".format(args.dataset, args.strategy, args.epochs, timestamp)))
+def accuracy(true, pred):
+        true = np.array(true)
+        pred = np.array(pred)
+        acc = np.sum((true == pred).astype(np.float32)) / len(true)
+        return acc * 100
 
-eval_plugin = EvaluationPlugin(
-    accuracy_metrics(minibatch=False, epoch=True, experience=True, stream=True),
-    loss_metrics(minibatch=False, epoch=True, experience=True, stream=True),
-    # timing_metrics(epoch=True),
-    # cpu_usage_metrics(experience=True),
-    # forgetting_metrics(experience=True, stream=True),
-    StreamConfusionMatrix(num_classes=args.num_classes, save_image=True),
-    # disk_usage_metrics(minibatch=True, epoch=True, experience=True, stream=True),
-    loggers=loggers
-)
+def test(test_loader):
+    criterion = nn.CrossEntropyLoss()
+    model.eval()
+    with torch.no_grad():
+        test_loss = []
+        test_preds = []
+        test_labels = []
+        for batch in tqdm(test_loader):
+            imgs = torch.Tensor(batch[0]).to(args.device)
+            labels = torch.Tensor(batch[1]).to(args.device)
+            scores = model(imgs)
+            loss = criterion(scores, labels)
+            test_loss.append(loss.detach().cpu().numpy())
+            test_labels.append(batch[1])
+            test_preds.append(scores.argmax(dim=-1))
+        loss = sum(test_loss)/len(test_loss)
+        acc = accuracy(torch.concat(test_labels, dim=0).cpu(),torch.concat(test_preds, dim=0).cpu())
+        print(f"\tTest:\tLoss - {round(loss, 3)}",'\t',f"Accuracy - {round(acc,3)}")
+        
+        return loss, acc
 
-# Joint training strategy
-joint_train = JointTraining(
-        model,
-        optimizer,
-        criterion,
-        train_mb_size=32,
-        train_epochs=args.epochs,
-        eval_mb_size=32,
-        device=args.device,
-        eval_every= args.eval_epochs
-    )
+model.train()
+best_test_acc = -np.inf
 
-# train and test loop
-results = []
-print("Starting training.")
-# Differently from other avalanche strategies, you NEED to call train
-# on the entire stream.
-joint_train.train(scenario.train_stream)
-results.append(joint_train.eval(scenario.test_stream))
+for epoch in range(args.epochs):
+    print(f"{epoch}/{args.epochs-1} epochs")
+    train_loss = []
+    train_preds = []
+    train_labels = []
+    for batch in tqdm(train_loader):
+        imgs = torch.Tensor(batch[0]).to(args.device)
+        labels = torch.Tensor(batch[1]).to(args.device)
+        scores = model(imgs)
+        loss = criterion(scores, labels)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        train_loss.append(loss.detach().cpu().numpy())
+        train_labels.append(batch[1])
+        train_preds.append(scores.argmax(dim=-1))
+    loss = sum(train_loss)/len(train_loss)
+    acc = accuracy(torch.concat(train_labels, dim=0).cpu(),torch.concat(train_preds, dim=0).cpu())
+    print(f"\tTrain\tLoss - {round(loss, 3)}",'\t',f"Accuracy - {round(acc, 3)}")
+
+    if (epoch+1) % args.test_interval == 0:
+        test_loss, test_acc = test(test_loader)
+        if test_acc > best_test_acc:
+            patient_epochs = 0
+            best_test_acc = test_acc
+            print(f"\tCurrent best epoch : {epoch} \t Best test acc. : {round(best_test_acc,3)}")
+            torch.save(model.state_dict(), f"{args.output_dir}/{args.model}_best.pt")
+    else:
+        patient_epochs += 1
+    
+    if patient_epochs == args.patience:
+        print("INFO: Accuracy has not increased in the last {} epochs.".format(args.patience))
+        print("INFO: Stopping the run and saving the best weights.")
+        break
+    print("--"*100)

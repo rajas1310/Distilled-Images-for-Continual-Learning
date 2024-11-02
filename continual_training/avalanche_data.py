@@ -4,8 +4,10 @@ from avalanche.benchmarks.scenarios.deprecated.generators import nc_benchmark
 import torch
 from transformers import ViTModel
 import torch.nn as nn
-from torch.utils.data import ConcatDataset
+from torch.utils.data import ConcatDataset, Dataset
 import glob
+from pathlib import Path
+from PIL import Image
 
 class ResNet(nn.Module):
     def __init__(self, args):
@@ -32,6 +34,43 @@ class ResNet(nn.Module):
         print(
             f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param:.2f}"
         )
+
+class ImageDataset(Dataset):
+    def __init__(self, args, split='train'):
+        super().__init__()
+        self.args = args
+        self.image_list = glob.glob(f'{args.data_dir}/*/*/*')
+        self.label_list = [int(Path(x).parent.stem) for x in self.image_list]
+
+        if args.dataset == 'cifar10':
+            image_mean = (0.491, 0.482, 0.447)
+            image_std = (0.202, 0.199, 0.201)
+        elif args.dataset == 'mnist':
+            image_mean = (0.131,)
+            image_std = (0.308,)
+        elif args.dataset == 'imagenet':
+            image_mean = (0.485, 0.456, 0.406)
+            image_std = (0.229, 0.224, 0.225)
+
+        if split == 'train':
+            self.transform =  transforms.Compose([
+                        transforms.RandomHorizontalFlip(),
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean=image_mean, std=image_std)
+                        ]) 
+        elif split == 'test':
+            self.transform = transforms.Compose([
+                        transforms.ToTensor(),
+                        transforms.Normalize(mean=image_mean, std=image_std)
+                        ])
+
+    def __len__(self):
+        return len(self.label_list)
+
+    def __getitem__(self, idx):
+        img = self.transform(Image.open(self.image_list[idx]).convert('RGB'))
+        label = self.label_list[idx]
+        return img, label
 
 class CustomSyntheticDataset():
     def __init__(self, args):

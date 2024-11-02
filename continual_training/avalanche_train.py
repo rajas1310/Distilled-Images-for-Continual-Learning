@@ -91,7 +91,7 @@ criterion = nn.CrossEntropyLoss()
 if args.strategy == 'replay': # default memory size = 200 images
     cl_strategy = Replay(
         model, optimizer, criterion,
-        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_every=2, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device,
+        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_every=0, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device,
         # plugins=[EarlyStoppingPlugin(patience=10, val_stream_name='test')]
 
     )
