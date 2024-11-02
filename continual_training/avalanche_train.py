@@ -78,7 +78,7 @@ eval_plugin = EvaluationPlugin(
     # timing_metrics(epoch=True),
     # cpu_usage_metrics(experience=True),
     # forgetting_metrics(experience=True, stream=True),
-    # StreamConfusionMatrix(num_classes=args.num_classes, save_image=False),
+    StreamConfusionMatrix(num_classes=args.num_classes, save_image=True),
     # disk_usage_metrics(minibatch=True, epoch=True, experience=True, stream=True),
     loggers=loggers
 )
