@@ -32,7 +32,69 @@ class ResNet(nn.Module):
         )
 
 class CustomSyntheticDataset():
-    pass
+    def __init__(self, args):
+        self.args = args
+
+        if args.dataset == 'cifar10':
+            image_mean = (0.491, 0.482, 0.447)
+            image_std = (0.202, 0.199, 0.201)
+        elif args.dataset == 'mnist':
+            image_mean = (0.131,)
+            image_std = (0.308,)
+        elif args.dataset == 'imagenet':
+            image_mean = (0.485, 0.456, 0.406)
+            image_std = (0.229, 0.224, 0.225)
+
+        self.train_transform =  transforms.Compose([
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=image_mean, std=image_std)
+                    ]) 
+        self.test_transform = transforms.Compose([
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=image_mean, std=image_std)
+                    ])
+        self.set_data_variables()
+
+    def set_data_variables(self):
+        if self.args.dataset == 'cifar10':
+            self.trainset = datasets.ImageFolder(
+                root=self.args.data_dir,
+                transform=self.train_transform
+            )
+
+            self.testset = datasets.CIFAR10(
+                root="../../cifar10", train=False, download=True,
+                transform=self.test_transform
+            )
+
+            self.task_dict = {0:2, 1:2, 2:2, 3:2, 4:2}
+
+        elif self.args.dataset == 'mnist':
+            pass
+
+        elif self.args.dataset == 'imagenet':
+            pass
+
+
+    def get_scenario(self):
+        if self.args.dataset == 'cifar10':
+            print("Trainset : ", len(self.trainset), "Testset : ", len(self.testset))
+            scenario = nc_benchmark(
+                self.trainset, self.testset, 
+                n_experiences=len(self.task_dict),
+                per_exp_classes=self.task_dict,
+                shuffle=False,
+                task_labels=True
+            )
+            return scenario
+        
+        elif self.args.dataset == 'mnist':
+            pass
+
+        elif self.args.dataset == 'imagenet':
+            pass
+
 
 class CustomOriginalDataset():
     def __init__(self, args):
