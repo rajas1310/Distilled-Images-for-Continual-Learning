@@ -5,7 +5,7 @@ import numpy as np
 
 
 class FocalLoss(nn.Module):
-    def __init__(self,  y_train):
+    def __init__(self,  y_train, device):
         super(FocalLoss, self).__init__()
         self.alpha, self.gamma = self.get_classweights(y_train)
 
