@@ -15,6 +15,8 @@ from avalanche_data import CustomOriginalDataset, ResNet
 
 import argparse
 
+import loss
+
 import sys, os
 from datetime import datetime
 import logging
@@ -40,6 +42,7 @@ parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='../../data')
 parser.add_argument('-odir', '--output-dir', type=str, default='./output')
 parser.add_argument('-m', '--model', type=str, default='resnet18')
+parser.add_argument('--loss', type=str, default='crossentropy')
 
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
 args = parser.parse_args()
@@ -86,7 +89,11 @@ eval_plugin = EvaluationPlugin(
 optimizer = torch.optim.Adam(
             params=model.parameters(), lr=args.lr, weight_decay=args.weight_decay
         )
-criterion = nn.CrossEntropyLoss()
+if args.loss == 'crossentropy':
+    criterion = nn.CrossEntropyLoss()
+elif args.loss == 'focal':
+    criterion = loss.FocalLoss(y_train=scenario.train_dataset)
+
 
 if args.strategy == 'replay': # default memory size = 200 images
     cl_strategy = Replay(
