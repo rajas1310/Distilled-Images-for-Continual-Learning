@@ -103,7 +103,7 @@ optimizer = torch.optim.Adam(
 if args.loss == 'crossentropy':
     criterion = nn.CrossEntropyLoss()
 elif args.loss == 'focal':
-    criterion = loss.FocalLoss(y_train=trainset.labels)
+    criterion = loss.FocalLoss(y_train=trainset.label_list)
 
 def accuracy(true, pred):
         true = np.array(true)
@@ -112,7 +112,6 @@ def accuracy(true, pred):
         return acc * 100
 
 def test(test_loader):
-    criterion = nn.CrossEntropyLoss()
     model.eval()
     with torch.no_grad():
         test_loss = []
