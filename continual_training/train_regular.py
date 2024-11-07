@@ -14,6 +14,7 @@ from datetime import datetime
 from logger_utils import Logger
 import argparse
 from torchvision import datasets, transforms
+import loss
 
 from tqdm import tqdm
 
@@ -41,6 +42,7 @@ parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='../../data')
 parser.add_argument('-odir', '--output-dir', type=str, default='./output')
 parser.add_argument('-m', '--model', type=str, default='resnet18')
+parser.add_argument('--loss', type=str, default='crossentropy')
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
 args = parser.parse_args()
 
@@ -97,7 +99,11 @@ test_loader = torch.utils.data.DataLoader(
 optimizer = torch.optim.Adam(
             params=model.parameters(), lr=args.lr, weight_decay=args.weight_decay
         )
-criterion = nn.CrossEntropyLoss()
+
+if args.loss == 'crossentropy':
+    criterion = nn.CrossEntropyLoss()
+elif args.loss == 'focal':
+    criterion = loss.FocalLoss(y_train=trainset.labels)
 
 def accuracy(true, pred):
         true = np.array(true)
