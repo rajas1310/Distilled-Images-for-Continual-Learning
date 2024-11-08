@@ -94,24 +94,23 @@ if args.loss == 'crossentropy':
 elif args.loss == 'focal':
     criterion = loss.FocalLoss(y_train=scenario.train_dataset)
 
-
 if args.strategy == 'replay': # default memory size = 200 images
     cl_strategy = Replay(
         model, optimizer, criterion,
-        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_every=0, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device,
+        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_every=0, eval_mb_size=32, evaluator=eval_plugin, device=args.device,
         # plugins=[EarlyStoppingPlugin(patience=10, val_stream_name='test')]
 
     )
 elif args.strategy == 'agem':
     cl_strategy = AGEM(
         model, optimizer, criterion,
-        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_every=2, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device,
+        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_every=2, eval_mb_size=32, evaluator=eval_plugin, device=args.device,
         patterns_per_exp = 100
     )
 elif args.strategy == 'ewc':
     cl_strategy = EWC(
         model, optimizer, criterion,
-        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_mb_size=args.batch_size, evaluator=eval_plugin, device=args.device
+        train_mb_size=args.batch_size, train_epochs=args.epochs, eval_mb_size=32, evaluator=eval_plugin, device=args.device
     )
 else:
     ValueError()

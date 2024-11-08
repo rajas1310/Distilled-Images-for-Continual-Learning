@@ -92,7 +92,7 @@ train_loader = torch.utils.data.DataLoader(
         num_workers=args.num_workers
     )
 test_loader = torch.utils.data.DataLoader(
-        testset, batch_size=args.batch_size, shuffle=False,
+        testset, batch_size=32, shuffle=False,
         num_workers=args.num_workers
     )
 

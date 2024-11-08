@@ -1,0 +1,9 @@
+Files already downloaded and verified
+Trainset samples: 500 Test samples: 10000
+0/9 epochs
+	Train	Loss - 13.464 	 Accuracy - 9.2
+	Test:	Loss - 11.949 	 Accuracy - 9.08
+	Current best epoch : 0 	 Best test acc. : 9.08
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1/9 epochs
+	Train	Loss - 6.383 	 Accuracy - 27.8
