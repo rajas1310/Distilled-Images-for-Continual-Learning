@@ -16,11 +16,11 @@ task_dict = {'cifar10' : {  0 : ['airplane', 'automobile'],
                             4 : ['ship', 'truck']
                           },
 
-             'mnist' : {    0 : [0, 9],
-                            1 : [1, 8],
-                            2 : [2, 7],
-                            3 : [3, 6],
-                            4 : [4, 5]
+             'mnist' : {    0 : [0, 1],
+                            1 : [2, 3],
+                            2 : [4, 5],
+                            3 : [6, 7],
+                            4 : [8, 9]
                         }
             }
 
@@ -48,10 +48,10 @@ class ImageDataset(Dataset):
     def __init__(self, args, image_list, label_list, split='train'):
         super().__init__()
         self.args = args
-        self.data_stats = dataset_stats_dict[args.dataset]
+        self.data_stats_dict = dataset_stats_dict[args.dataset]
         self.image_list = image_list #glob.glob(f'{args.data_dir}/task*/*/*')
         self.label_list = label_list #[int(Path(x).parent.stem) for x in self.image_list]
-
+        """
         if args.dataset == 'cifar10':
             image_mean = (0.491, 0.482, 0.447)
             image_std = (0.202, 0.199, 0.201)
@@ -61,17 +61,17 @@ class ImageDataset(Dataset):
         elif args.dataset == 'imagenet':
             image_mean = (0.485, 0.456, 0.406)
             image_std = (0.229, 0.224, 0.225)
-
+        """
         if split == 'train':
             self.transform =  transforms.Compose([
                         transforms.RandomHorizontalFlip(),
                         transforms.ToTensor(),
-                        transforms.Normalize(mean=self.data_stats['mean'], std=self.data_stats['std'])
+                        transforms.Normalize(mean=self.data_stats_dict['mean'], std=self.data_stats_dict['std'])
                         ]) 
         elif split == 'test':
             self.transform = transforms.Compose([
                         transforms.ToTensor(),
-                        transforms.Normalize(mean=self.data_stats['mean'], std=self.data_stats['std'])
+                        transforms.Normalize(mean=self.data_stats_dict['mean'], std=self.data_stats_dict['std'])
                         ])
 
     def __len__(self):
@@ -138,14 +138,15 @@ class TaskwiseTestDataset():
     def get_list(self):
         self.transform = transforms.Compose([
                         transforms.ToTensor(),
-                        transforms.Normalize(mean=self.data_stats['mean'], std=self.data_stats['std'])
+                        transforms.Normalize(mean=self.data_stats_dict['mean'], std=self.data_stats_dict['std'])
                         ])
         
         if self.args.dataset == 'cifar10':
             self.testset = datasets.CIFAR10(
                     root=self.args.data_dir, train=False, download=True,
-                    transform=self.test_transform
+                    transform=self.transform
                 )
+            
             imgs = self.testset.data
             labels = self.testset.targets
 
