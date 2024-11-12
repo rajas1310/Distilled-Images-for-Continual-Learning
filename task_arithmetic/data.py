@@ -91,7 +91,7 @@ class SyntheticTrainDataset():
         self.label2int = self.get_label2int()
         self.train_imgs, self.train_labels = [],[]
         # self.test_imgs, self.test_labels = [],[]
-        self.get_lists()
+        self.get_list()
 
     def get_label2int(self):
         label2int = []
