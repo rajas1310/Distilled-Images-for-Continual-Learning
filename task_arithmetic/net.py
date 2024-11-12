@@ -29,9 +29,15 @@ class ResNet(nn.Module):
         print(
             f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param:.2f}"
         )
+    
+    def accuracy(self, true, pred):
+        true = np.array(true)
+        pred = np.array(pred)
+        acc = np.sum((true == pred).astype(np.float32)) / len(true)
+        return acc * 100
 
 
-def fit(model, args, train_loader, test_loader):
+def fit(args, model, train_loader, test_loader):
     optim = torch.optim.Adam(
         params=model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
