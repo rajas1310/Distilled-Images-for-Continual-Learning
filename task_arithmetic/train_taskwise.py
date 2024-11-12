@@ -70,7 +70,7 @@ testloader = torch.utils.data.DataLoader(
 
 start_time = time.time()
 
-model = ResNet()(args)
+model = ResNet(args)
 fit(args, model, trainloader, testloader)
 
 end_time = time.time()
