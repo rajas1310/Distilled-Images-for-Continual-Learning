@@ -1,6 +1,6 @@
 from torchvision import datasets, transforms
 # from avalanche.benchmarks.generators import nc_benchmark, ni_benchmark
-from avalanche.benchmarks.scenarios.deprecated.generators import nc_benchmark
+# from avalanche.benchmarks.scenarios.deprecated.generators import nc_benchmark
 import torch
 # from transformers import ViTModel
 import torch.nn as nn
