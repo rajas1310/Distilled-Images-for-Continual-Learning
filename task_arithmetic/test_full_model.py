@@ -12,7 +12,7 @@ from data import *
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-d', '--dataset', type=str, default='oxfordpet')
+parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='../data')
 parser.add_argument('-m', '--model', type=str, default='resnet18')
 parser.add_argument('-bs','--batch_size',type = int,default = 32)

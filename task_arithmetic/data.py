@@ -8,6 +8,7 @@ from torch.utils.data import ConcatDataset, Dataset
 import glob
 from pathlib import Path
 from PIL import Image
+from tqdm import tqdm
 
 task_dict = {'cifar10' : {  0 : ['airplane', 'automobile'],
                             1 : ['bird', 'cat'],
@@ -114,14 +115,16 @@ class SyntheticTrainDataset():
         print("CLASSES : ", self.task_dict[self.args.tasknum])
         return ImageDataset(self.train_imgs, self.train_labels, 'train')
 
-
-class TaskwiseTestDataset():
-    def __init__(self, args, task_dict=task_dict, include_previous_tasks = False):
+class TaskwiseOriginalDataset():
+    def __init__(self, args, split:str='test', task_dict=task_dict, include_previous_tasks = False):
         self.args = args
         # self.img_processor = img_processor
+        self.split = split
         self.include_previous_tasks = include_previous_tasks
+        self.data_stats_dict = dataset_stats_dict[args.dataset]
         self.task_dict = task_dict[args.dataset]
         self.label2int = self.get_label2int()
+        self.train_imgs, self.train_labels = [],[]
         self.test_imgs, self.test_labels = [],[]
         self.get_lists()
 
@@ -135,50 +138,86 @@ class TaskwiseTestDataset():
         label2int = dict(zip(label2int, keys))
         return label2int
     
-    def get_list(self):
-        self.transform = transforms.Compose([
+    def get_lists(self):
+        self.train_transform = transforms.Compose([
+                                transforms.RandomHorizontalFlip(),
+                                transforms.ToTensor(),
+                                transforms.Normalize(mean=self.data_stats_dict['mean'], std=self.data_stats_dict['std'])
+                                ]) 
+        
+        self.test_transform = transforms.Compose([
                         transforms.ToTensor(),
                         transforms.Normalize(mean=self.data_stats_dict['mean'], std=self.data_stats_dict['std'])
                         ])
         
+        
         if self.args.dataset == 'cifar10':
-            self.testset = datasets.CIFAR10(
-                    root=self.args.data_dir, train=False, download=True,
-                    transform=self.transform
+            if self.split == 'train':
+                self.trainset = datasets.CIFAR10(root=self.args.data_dir, train=True, download=True,
+                                        transform=self.train_transform)
+                
+                train_imgs = self.trainset.data
+                train_labels = self.trainset.targets
+
+            self.testset = datasets.CIFAR10(root=self.args.data_dir, train=False, download=True,
+                    transform=self.test_transform
                 )
-            
-            imgs = self.testset.data
-            labels = self.testset.targets
+        
+            test_imgs = self.testset.data
+            test_labels = self.testset.targets
+
+            valid_train_labels = self.task_dict[self.args.tasknum]
 
             if self.include_previous_tasks:
-                valid_labels = [label2int['cifar10'][item] for x in range(self.args.tasknum + 1) for item in self.task_dict[x]]
+                valid_test_labels = [label2int['cifar10'][item] for x in range(self.args.tasknum + 1) for item in self.task_dict[x]]
             else:
-                valid_labels = self.task_dict[self.args.tasknum]
+                valid_test_labels = valid_train_labels
 
         elif self.args.dataset == 'mnist':
+
+            if self.split == 'train':
+                self.trainset = datasets.MNIST(root=self.args.data_dir, train=True, download=True,
+                                        transform=self.train_transform)
+                
+                train_imgs = self.trainset.test_data
+                train_labels = self.trainset.test_labels
+
             self.testset = datasets.MNIST(
                     root=self.args.data_dir, train=False, download=True,
                 )
-            imgs = self.testset.test_data
-            labels = self.testset.test_labels
+
+            test_imgs = self.testset.test_data
+            test_labels = self.testset.test_labels
+
+            valid_train_labels = self.task_dict[self.args.tasknum]
 
             if self.include_previous_tasks:
-                valid_labels = [item for x in range(self.args.tasknum + 1) for item in self.task_dict[x]]
+                valid_test_labels = [item for x in range(self.args.tasknum + 1) for item in self.task_dict[x]]
             else:
-                valid_labels = self.task_dict[self.args.tasknum]
+                valid_test_labels = valid_train_labels
 
-        for idx,label in enumerate(labels):
-            if label in valid_labels:
-                self.test_imgs.append(imgs[idx])
-                self.test_labels.append(labels[idx])
+        #for train
+        if self.split == 'train':
+            for idx,label in tqdm(enumerate(train_labels), desc="Filtering train-samples as per task", ncols=25):
+                if label in valid_train_labels:
+                    self.train_imgs.append(train_imgs[idx])
+                    self.train_labels.append(train_labels[idx])
+
+        #for test
+        for idx,label in tqdm(enumerate(test_labels), desc="Filtering test-samples as per task", ncols=25):
+            if label in valid_test_labels:
+                self.test_imgs.append(test_imgs[idx])
+                self.test_labels.append(test_labels[idx])
 
     def get_dataset(self):
-        print(f"INFO : Loading {self.args.dataset} TEST data for TASK {self.args.tasknum} ... ")
-        print("CLASSES : ", self.task_dict[self.args.tasknum])
-        return ImageDataset(self.test_imgs, self.test_labels, 'test')
-
-        
-
+        if self.split == 'train':
+            print(f"INFO : Loading {self.args.dataset} TRAIN data for TASK {self.args.tasknum} (includes_prev_tasks = {self.include_previous_tasks})... ")
+            print("CLASSES : ", self.task_dict[self.args.tasknum])
+            return ImageDataset(self.train_imgs, self.train_labels, 'train'), ImageDataset(self.test_imgs, self.test_labels, 'test') 
+        elif self.split == 'test':
+            print(f"INFO : Loading {self.args.dataset} TEST data for TASK {self.args.tasknum} (includes_prev_tasks = {self.include_previous_tasks})... ")
+            print("CLASSES : ", self.task_dict[self.args.tasknum])
+            return ImageDataset(self.test_imgs, self.test_labels, 'test')
             
 
     
