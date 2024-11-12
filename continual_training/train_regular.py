@@ -14,6 +14,7 @@ from datetime import datetime
 from logger_utils import Logger
 import argparse
 from torchvision import datasets, transforms
+import loss
 
 from tqdm import tqdm
 
@@ -41,6 +42,7 @@ parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='../../data')
 parser.add_argument('-odir', '--output-dir', type=str, default='./output')
 parser.add_argument('-m', '--model', type=str, default='resnet18')
+parser.add_argument('--loss', type=str, default='crossentropy')
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
 args = parser.parse_args()
 
@@ -90,14 +92,18 @@ train_loader = torch.utils.data.DataLoader(
         num_workers=args.num_workers
     )
 test_loader = torch.utils.data.DataLoader(
-        testset, batch_size=args.batch_size, shuffle=False,
+        testset, batch_size=32, shuffle=False,
         num_workers=args.num_workers
     )
 
 optimizer = torch.optim.Adam(
             params=model.parameters(), lr=args.lr, weight_decay=args.weight_decay
         )
-criterion = nn.CrossEntropyLoss()
+
+if args.loss == 'crossentropy':
+    criterion = nn.CrossEntropyLoss()
+elif args.loss == 'focal':
+    criterion = loss.FocalLoss(y_train=trainset.label_list, device=args.device)
 
 def accuracy(true, pred):
         true = np.array(true)
@@ -106,7 +112,6 @@ def accuracy(true, pred):
         return acc * 100
 
 def test(test_loader):
-    criterion = nn.CrossEntropyLoss()
     model.eval()
     with torch.no_grad():
         test_loss = []

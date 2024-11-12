@@ -5,8 +5,9 @@ import numpy as np
 
 
 class FocalLoss(nn.Module):
-    def __init__(self,  y_train):
+    def __init__(self,  y_train, device):
         super(FocalLoss, self).__init__()
+        self.device = device
         self.alpha, self.gamma = self.get_classweights(y_train)
 
     def get_classweights(self, y_train):
@@ -18,7 +19,7 @@ class FocalLoss(nn.Module):
         for count in class_counts:
             weight = 1 / (count / total_samples)
             class_weights.append(weight)
-        return torch.FloatTensor(class_weights), num_classes
+        return torch.FloatTensor(class_weights).to(self.device), num_classes
 
     def forward(self, inputs, targets):
         ce_loss = F.cross_entropy(inputs, targets, reduction='none')

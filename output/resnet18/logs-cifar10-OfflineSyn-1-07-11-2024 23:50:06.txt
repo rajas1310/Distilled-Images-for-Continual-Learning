@@ -1,0 +1,4 @@
+Downloading https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz to /content/data/cifar10_ipc50_50_s0.7_g8.0_kmexpand1-cleaned/cifar-10-python.tar.gz
+Extracting /content/data/cifar10_ipc50_50_s0.7_g8.0_kmexpand1-cleaned/cifar-10-python.tar.gz to /content/data/cifar10_ipc50_50_s0.7_g8.0_kmexpand1-cleaned
+Trainset samples: 500 Test samples: 10000
+0/0 epochs
