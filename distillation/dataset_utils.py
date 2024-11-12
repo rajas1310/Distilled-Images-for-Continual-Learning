@@ -59,6 +59,12 @@ def load_dataset(args):
         transforms.Resize((args.size, args.size)),
         transforms.ToTensor(),
     ])
+    transform_train_mnist = transforms.Compose([
+            transforms.Grayscale(num_output_channels=3),
+            transforms.Resize((args.size, args.size)),
+            transforms.ToTensor(),
+        ])
+        
     if args.dataset == 'cifar10':
         transform_test = transforms.Compose([
             transforms.ToTensor(),
@@ -97,6 +103,16 @@ def load_dataset(args):
                                         transform=transform_train)
         testset = datasets.ImageFolder(root=args.data_dir + "/val", 
                                        transform=transform_train)
+    elif args.dataset == 'mnist':
+        transform_test = transforms.Compose([
+            transforms.Grayscale(num_output_channels=3),
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,0.1307,0.1307), (0.3081,0.3081,0.3081))
+        ] )
+        trainset = datasets.MNIST(root=args.data_dir, train=True, download=True,
+                              transform=transform_train_mnist)
+        testset = datasets.MNIST(root=args.data_dir, train=False, download=True,
+                             transform=transform_test)
     
     label_list = task_dict[args.dataset][args.task]
 
