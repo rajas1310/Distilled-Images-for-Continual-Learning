@@ -166,8 +166,6 @@ class TaskwiseOriginalDataset():
             test_imgs = self.testset.data
             test_labels = self.testset.targets
 
-            print("DEBUG: ", len(test_labels), len(test_imgs))
-
 
             valid_train_labels = [label2int['cifar10'][item] for item in self.task_dict[self.args.tasknum]]
 
@@ -175,8 +173,6 @@ class TaskwiseOriginalDataset():
                 valid_test_labels = [label2int['cifar10'][item] for x in range(self.args.tasknum + 1) for item in self.task_dict[x]]
             else:
                 valid_test_labels = valid_train_labels
-
-            print("DEBUG: ", valid_train_labels, valid_test_labels)
 
         elif self.args.dataset == 'mnist':
 
