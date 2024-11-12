@@ -111,9 +111,9 @@ class SyntheticTrainDataset():
             self.train_labels.append(label)
 
     def get_dataset(self):
-        print(f"INFO : Loading {self.args.dataset} TRAIN data for TASK {self.args.tasknum} ... ")
+        print(f"\nINFO : Loading {self.args.dataset} Synthetic TRAIN ({len(self.train_labels)}) data for TASK {self.args.tasknum} ... ")
         print("CLASSES : ", self.task_dict[self.args.tasknum])
-        return ImageDataset(self.train_imgs, self.train_labels, 'train')
+        return ImageDataset(self.args, self.train_imgs, self.train_labels, 'train')
 
 class TaskwiseOriginalDataset():
     def __init__(self, args, split:str='test', task_dict=task_dict, include_previous_tasks = False):
@@ -211,13 +211,13 @@ class TaskwiseOriginalDataset():
 
     def get_dataset(self):
         if self.split == 'train':
-            print(f"INFO : Loading {self.args.dataset} TRAIN data for TASK {self.args.tasknum} (includes_prev_tasks = {self.include_previous_tasks})... ")
+            print(f"\nINFO : Loading {self.args.dataset} Original TRAIN ({len(self.train_labels)}) and TEST ({len(self.test_labels)}) data for TASK {self.args.tasknum} (includes_prev_tasks = {self.include_previous_tasks})... ")
             print("CLASSES : ", self.task_dict[self.args.tasknum])
-            return ImageDataset(self.train_imgs, self.train_labels, 'train'), ImageDataset(self.test_imgs, self.test_labels, 'test') 
+            return ImageDataset(self.args, self.train_imgs, self.train_labels, 'train'), ImageDataset(self.args, self.test_imgs, self.test_labels, 'test') 
         elif self.split == 'test':
-            print(f"INFO : Loading {self.args.dataset} TEST data for TASK {self.args.tasknum} (includes_prev_tasks = {self.include_previous_tasks})... ")
+            print(f"\nINFO : Loading {self.args.dataset} Original TEST ({len(self.test_labels)}) data for TASK {self.args.tasknum} (includes_prev_tasks = {self.include_previous_tasks})... ")
             print("CLASSES : ", self.task_dict[self.args.tasknum])
-            return ImageDataset(self.test_imgs, self.test_labels, 'test')
+            return ImageDataset(self.args, self.test_imgs, self.test_labels, 'test')
             
 
     

@@ -22,7 +22,7 @@ parser.add_argument('-nw','--num-workers', type=int, default=2)
 parser.add_argument('--test-interval', type=int, default=1)
 parser.add_argument('--device', type=str, default="cuda:0")
 parser.add_argument('--model', type=str, default="resnet18")
-parser.add_argument('--syn', type=bool)
+parser.add_argument('--syn', action="store_true")
 
 # parser.add_argument('--seed', type=int, default=42)
 
