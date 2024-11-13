@@ -30,8 +30,6 @@ parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='./data')
 parser.add_argument('-odir', '--output-dir', type=str, default='./output')
 parser.add_argument('-t', '--tasknum', type=int)
-args = parser.parse_args()
-
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
 args = parser.parse_args()
 

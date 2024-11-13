@@ -45,6 +45,7 @@ def fit(args, model, train_loader, test_loader):
     model.train()
 
     best_test_acc = -np.inf
+    best_epoch = 0
 
     for epoch in range(args.epochs):
         print(f"{epoch}/{args.epochs-1} epochs   -> (Task-{args.tasknum})")
@@ -71,11 +72,12 @@ def fit(args, model, train_loader, test_loader):
             if test_acc > best_test_acc:
                 patient_epochs = 0
                 best_test_acc = test_acc
-                print(f"\tCurrent best epoch : {epoch} \t Best test acc. : {round(best_test_acc,3)}")
-                torch.save(model.state_dict(), f"{args.output_dir}/{args.model}_task_{args.tasknum}_best_TACL.pt")
-        else:
-            patient_epochs += 1
-        
+                best_epoch = epoch
+                torch.save(model.state_dict(), f"{args.output_dir}/{args.model}_task_{args.tasknum}_best_{round(best_test_acc,3)}_TACL.pt")
+            else:
+                patient_epochs += 1 * args.test_interval
+            print(f"\tCurrent best epoch : {best_epoch} \t Best test acc. : {round(best_test_acc,3)}")
+
         if patient_epochs == args.patience:
             print("INFO: Accuracy has not increased in the last {} epochs.".format(args.patience))
             print("INFO: Stopping the run and saving the best weights.")
