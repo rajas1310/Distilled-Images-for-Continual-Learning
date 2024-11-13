@@ -9,6 +9,7 @@ import glob
 from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
+import numpy as np
 
 task_dict = {'cifar10' : {  0 : ['airplane', 'automobile'],
                             1 : ['bird', 'cat'],
@@ -79,8 +80,11 @@ class ImageDataset(Dataset):
         return len(self.label_list)
 
     def __getitem__(self, idx):
+        if self.args.dataset == 'mnist':
+          self.image_list[idx] = torch.stack((self.image_list[idx],self.image_list[idx],self.image_list[idx]), dim=-1)
+
         # img = self.transform(Image.open(self.image_list[idx]).convert('RGB'))
-        img = self.transform(Image.fromarray(self.image_list[idx]))
+        img = self.transform(Image.fromarray(np.array(self.image_list[idx])))
         label = self.label_list[idx]
         return img, label
     
