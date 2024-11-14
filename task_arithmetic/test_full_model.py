@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='../data')
+parser.add_argument('-odir', '--output-dir', type=str, default='./output')
 parser.add_argument('-m', '--model', type=str, default='resnet18')
 parser.add_argument('-bs','--batch_size',type = int,default = 32)
 parser.add_argument('-nw','--num_workers',type=int,default=2)
@@ -49,7 +50,7 @@ def test_model(model,test_loader):
             loss = sum(test_loss)/len(test_loss)
             acc = accuracy(torch.concat(test_labels, dim=0).cpu(),torch.concat(test_preds, dim=0).cpu())
             print(f"\tTest:\tLoss - {round(loss, 3)}",'\t',f"Accuracy - {round(acc,3)}")
-            torch.save(final_model, f"{args.output_dir}/resultant_model_{args.data}.pt")
+            torch.save(final_model, f"{args.output_dir}/resnet18/resultant_model_{args.data}.pt")
             return loss, acc
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -57,7 +58,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 transform = transforms.Compose([
                         transforms.ToTensor(),
-                        transforms.Normalize(mean=dataset_stats_dict['mean'], std=dataset_stats_dict['std'])
+                        transforms.Normalize(mean=dataset_stats_dict[args.dataset]['mean'], std=dataset_stats_dict[args.dataset]['std'])
                         ])
         
 if args.dataset == 'cifar10':
@@ -73,6 +74,6 @@ elif args.dataset == 'mnist':
         )
 
 test_loader = DataLoader(testset,args.batch_size,num_workers=args.num_workers,shuffle=False)
-final_model = get_model(args, f"{args.output_dir}/resnet18/resnet18-pretrained.pth", list_of_task_checkpoints=[f"{args.model_input_dir}/vit_task_{i}_best.pt" for i in range(args.total_tasks)], scaling_coef=args.scaling_coefficient)
+final_model = get_model(args, f"{args.output_dir}/resnet18/resnet18-pretrained.pth", list_of_task_checkpoints=[f"{args.model_input_dir}/resnet18_task_{i}_best_TACL.pt" for i in range(args.total_tasks)], scaling_coef=args.scaling_coefficient)
 
 test_model(final_model,test_loader)
