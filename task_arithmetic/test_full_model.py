@@ -24,7 +24,13 @@ parser.add_argument('-sc','--scaling_coefficient',type = float,default=0.25)
 parser.add_argument('-e', '--epochs', type=int, default=50)
 parser.add_argument('-lr', '--lr', type=float, default=5e-6)
 parser.add_argument('-wd', '--weight-decay', type=float, default=1e-6)
+parser.add_argument('-nc', '--num-classes', type=int, default=None)
+parser.add_argument('--device', type=str, default="cuda:0")
 args = parser.parse_args()
+
+if args.num_classes == None:
+    if args.dataset == 'mnist' or args.dataset == 'cifar10':
+        args.num_classes = 10
 
 def accuracy(true,pred):
     true = np.array(true)
@@ -50,7 +56,7 @@ def test_model(model,test_loader):
             loss = sum(test_loss)/len(test_loss)
             acc = accuracy(torch.concat(test_labels, dim=0).cpu(),torch.concat(test_preds, dim=0).cpu())
             print(f"\tTest:\tLoss - {round(loss, 3)}",'\t',f"Accuracy - {round(acc,3)}")
-            torch.save(final_model, f"{args.output_dir}/resnet18/resultant_model_{args.data}.pt")
+            torch.save(final_model, f"{args.output_dir}/resnet18/resultant_model_{args.dataset}.pt")
             return loss, acc
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

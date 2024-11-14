@@ -55,13 +55,13 @@ def get_model(args, pretrained_checkpoint, list_of_task_checkpoints, scaling_coe
         finetuned_weights = torch.load(ckpt)
         # task_model = ViT_LoRA(args, use_)
         
-        taskwise_model = ResNet(num_classes=10)
+        taskwise_model = ResNet(num_classes=args.num_classes, device=args.device, model=args.model)
         taskwise_model.load_state_dict(finetuned_weights)
         # print(taskwise_model.linear.weight.shape)
-        start_idx = ranges_of_classes[args.data][task_idx][0]
-        end_idx = ranges_of_classes[args.data][task_idx][1]
-        model.linear.weight[start_idx:end_idx , :] = taskwise_model.linear.weight[start_idx:end_idx , :]
-        model.linear.bias[start_idx:end_idx] = taskwise_model.linear.bias[start_idx:end_idx]
+        start_idx = ranges_of_classes[args.dataset][task_idx][0]
+        end_idx = ranges_of_classes[args.dataset][task_idx][1]
+        model.net.fc.weight[start_idx:end_idx , :] = taskwise_model.net.fc.weight[start_idx:end_idx , :]
+        model.net.fc.bias[start_idx:end_idx] = taskwise_model.net.fc.bias[start_idx:end_idx]
         # print(model.linear.weight.shape)
         # print(model.linear.bias.shape)
     return model
