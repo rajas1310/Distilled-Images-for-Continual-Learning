@@ -1,5 +1,7 @@
 import torch
+from net import ResNet
 
+device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
 
 class TaskVector():
     def __init__(self, pretrained_checkpoint=None, finetuned_checkpoint=None, vector=None):
@@ -14,17 +16,17 @@ class TaskVector():
         else:
             assert pretrained_checkpoint is not None and finetuned_checkpoint is not None
             with torch.no_grad():
-                pretrained_state_dict = torch.load(pretrained_checkpoint).state_dict()
+                pretrained_state_dict = torch.load(pretrained_checkpoint)
                 finetuned_state_dict = torch.load(finetuned_checkpoint)
                 self.vector = {}
                 for key in pretrained_state_dict:
                     
-                    if key == "linear":
+                    if key == "linear" or "fc" in key:
                         print("linear found")
                         continue
                     if pretrained_state_dict[key].dtype in [torch.int64, torch.uint8]:
                         continue
-                    self.vector[key] = finetuned_state_dict[key] - pretrained_state_dict[key]
+                    self.vector[key] = finetuned_state_dict['net.'+key].to(device) - pretrained_state_dict[key].to(device)
     
     def __add__(self, other):
         """Add two task vectors together."""
@@ -55,11 +57,12 @@ class TaskVector():
         with torch.no_grad():
             pretrained_model = torch.load(pretrained_checkpoint)
             new_state_dict = {}
-            pretrained_state_dict = pretrained_model.state_dict()
+            pretrained_state_dict = pretrained_model#.state_dict()
             for key in pretrained_state_dict:
                 if key not in self.vector:
                     print(f'Warning: key {key} is present in the pretrained state dict but not in the task vector')
                     continue
-                new_state_dict[key] = pretrained_state_dict[key] + scaling_coef * self.vector[key]
+                new_state_dict[key] = pretrained_state_dict[key].to(device) + scaling_coef * self.vector[key].to(device)
+        pretrained_model = ResNet(num_classes=10, device=device, model='resnet18')
         pretrained_model.load_state_dict(new_state_dict, strict=False)
         return pretrained_model

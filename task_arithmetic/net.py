@@ -5,13 +5,13 @@ from tqdm import tqdm
 import numpy as np
 
 class ResNet(nn.Module):
-    def __init__(self, args):
+    def __init__(self, num_classes, device ,model='resnet18'):
         super().__init__()
-        self.device = args.device
-        self.model_name = args.model
+        self.device = device
+        self.model_name = model
 
         self.net = torch.hub.load('pytorch/vision:v0.10.0', self.model_name, pretrained=True)
-        self.net.fc = nn.Linear(512, args.num_classes)
+        self.net.fc = nn.Linear(512, num_classes)
         self.net.to(self.device)
         # self.linear.to(self.device)
 

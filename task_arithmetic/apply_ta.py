@@ -55,7 +55,7 @@ def get_model(args, pretrained_checkpoint, list_of_task_checkpoints, scaling_coe
         finetuned_weights = torch.load(ckpt)
         # task_model = ViT_LoRA(args, use_)
         
-        taskwise_model = ResNet(args)
+        taskwise_model = ResNet(num_classes=10)
         taskwise_model.load_state_dict(finetuned_weights)
         # print(taskwise_model.linear.weight.shape)
         start_idx = ranges_of_classes[args.data][task_idx][0]
