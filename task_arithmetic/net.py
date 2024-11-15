@@ -14,6 +14,8 @@ class ResNet(nn.Module):
         self.net.fc = nn.Linear(512, num_classes)
         self.net.to(self.device)
         # self.linear.to(self.device)
+        self.softmax = nn.Softmax(dim=1)
+
 
     def forward(self, x):
         x = self.net(x)
@@ -37,11 +39,14 @@ class ResNet(nn.Module):
         return acc * 100
 
 
-def fit(args, model, train_loader, test_loader):
+def fit(args, model, train_loader, test_loader, kldiv = True):
     optim = torch.optim.Adam(
         params=model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
     criterion = nn.CrossEntropyLoss()
+    if kldiv:
+      criterion_kldiv = nn.KLDivLoss(size_average=False)
+      
     model.train()
 
     best_test_acc = -np.inf

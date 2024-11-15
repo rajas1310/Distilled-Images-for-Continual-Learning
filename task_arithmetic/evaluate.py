@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 
-from data import TaskDataset, task_dict
 from apply_ta import get_model
 
 # from vit_baseline import ViT_LoRA
@@ -42,6 +41,8 @@ args = parser.parse_args()
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
 args = parser.parse_args()
 
+args.output_dir = f"{args.output_dir}/{args.model}_{args.dataset}"
+
 if args.num_classes == None:
     if args.dataset == 'mnist' or args.dataset == 'cifar10':
         args.num_classes = 10
@@ -54,7 +55,7 @@ if args.num_classes == None:
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir, exist_ok=True)
     
-sys.stdout = Logger(os.path.join(args.output_dir, 'logs-evaluate-{}-TACL.txt'.format(args.data)))
+sys.stdout = Logger(os.path.join(args.output_dir, 'logs-evaluate-{}-TACL.txt'.format(args.dataset)))
 
 print(args)
 
@@ -63,8 +64,10 @@ print(args)
 
 
 # get pretrained model
-pretrained_model = ResNet(args)
-torch.save(pretrained_model, f"{args.output_dir}/resnet/resnet18-pretrained.pth")
+# pretrained_model = ResNet(args.num_classes, args.device, args.model)
+# torch.save(pretrained_model, f"{args.output_dir}/resnet18-pretrained.pth")
+pretrained_path = '/content/drive/MyDrive/DL 566 Project/colab_output/resnet18/resnet18-pretrained.pth'
+pretrained_model = torch.load(pretrained_path)
 
 test_all_tasks = list()
 
@@ -79,10 +82,10 @@ for task_idx in range(args.total_tasks):
     print(f"Length of {task_idx}th test dataset", len(testset))
     test_all_tasks.append(testloader)
 
-final_model = get_model(args, f"{args.output_dir}/resnet/resnet18-pretrained.pth", list_of_task_checkpoints=[f"{args.model_input_dir}/{args.model}_task_{i}_best_TACL.pt" for i in range(args.total_tasks)], scaling_coef=args.scaling_coef)
+final_model = get_model(args, pretrained_path, list_of_task_checkpoints=[f"{args.model_input_dir}/{args.model}_task_{i}_best_TACL.pt" for i in range(args.total_tasks)], scaling_coef=args.scaling_coef)
 # print(final_model)
 for task_idx, loader in enumerate(test_all_tasks):
     print(task_idx)
     test(args, final_model, loader)
 
-torch.save(final_model, f"{args.output_dir}/resultant_model_{args.data}.pt")
+torch.save(final_model, f"{args.output_dir}/resultant_model_{args.dataset}.pt")
