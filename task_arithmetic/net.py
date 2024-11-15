@@ -1,3 +1,4 @@
+from re import X
 import torch
 import torch.nn as nn
 from torch.utils.data import ConcatDataset, Dataset
@@ -11,15 +12,18 @@ class ResNet(nn.Module):
         self.model_name = model
 
         self.net = torch.hub.load('pytorch/vision:v0.10.0', self.model_name, pretrained=True)
-        self.net.fc = nn.Linear(512, num_classes)
-        self.net.to(self.device)
-        # self.linear.to(self.device)
-        self.softmax = nn.Softmax(dim=1)
+        self.net.fc = nn.Identity()
+        self.linear = nn.Linear(512, num_classes)
 
+        self.net.to(self.device)
+        self.linear.to(self.device)
+
+        
 
     def forward(self, x):
         x = self.net(x)
-        return x
+
+        return x, self.linear(x)
 
     def print_trainable_parameters(self):
         trainable_params = 0
@@ -39,14 +43,16 @@ class ResNet(nn.Module):
         return acc * 100
 
 
-def fit(args, model, train_loader, test_loader, kldiv = True):
+def fit(args, model, train_loader, test_loader, pretrained_model=None):
     optim = torch.optim.Adam(
         params=model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )
     criterion = nn.CrossEntropyLoss()
-    if kldiv:
-      criterion_kldiv = nn.KLDivLoss(size_average=False)
       
+    if pretrained_model: # for KL-div loss
+      criterion_kldiv = nn.KLDivLoss(size_average=False)
+      softmax = nn.Softmax(dim=1)
+
     model.train()
 
     best_test_acc = -np.inf
@@ -60,8 +66,20 @@ def fit(args, model, train_loader, test_loader, kldiv = True):
         for batch in tqdm(train_loader):
             imgs = torch.Tensor(batch[0]).to(args.device)
             labels = torch.Tensor(batch[1]).to(args.device)
-            scores = model(imgs)
-            loss = criterion(scores, labels)
+            bbone_params, scores = model(imgs)
+
+            if pretrained_model:
+              pretrained_model.eval()
+              bbone_params_prtn, scores_prtn = pretrained_model(imgs)
+              # print(self.softmax(scores_prtn),"\n", self.softmax(scores))
+              loss_kldiv = criterion_kldiv(softmax(bbone_params_prtn).log(), softmax(bbone_params))
+              # print("\nKLDIV : ", loss_kldiv)
+              loss = criterion(scores, labels)
+              # print("Loss: ", loss_kldiv, loss)
+              loss = 0.4*loss_kldiv + 0.6*loss
+            else:
+              loss = criterion(scores, labels)
+
             optim.zero_grad()
             loss.backward()
             optim.step()

@@ -23,6 +23,7 @@ parser.add_argument('--test-interval', type=int, default=1)
 parser.add_argument('--device', type=str, default="cuda:0")
 parser.add_argument('--model', type=str, default="resnet18")
 parser.add_argument('--syn', action="store_true")
+parser.add_argument('-expt', '--expt-type', type=str, default=None) # TODO : can also be "FShotTuning"
 
 # parser.add_argument('--seed', type=int, default=42)
 
@@ -69,7 +70,12 @@ testloader = torch.utils.data.DataLoader(
 start_time = time.time()
 
 model = ResNet(num_classes=args.num_classes, device=args.device, model=args.model)
-fit(args, model, trainloader, testloader)
+
+if args.expt_type == 'KLDivLoss':
+    model_pretrained = ResNet(num_classes=args.num_classes, device=args.device, model=args.model)
+    model.fit(args, model, trainloader, testloader, model_pretrained)
+else:
+    model.fit(args, model, trainloader, testloader)
 
 end_time = time.time()
 
