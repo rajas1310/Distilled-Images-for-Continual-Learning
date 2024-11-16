@@ -96,7 +96,7 @@ def fit(args, model, train_loader, test_loader, pretrained_model=None):
                 patient_epochs = 0
                 best_test_acc = test_acc
                 best_epoch = epoch
-                torch.save(model.state_dict(), f"{args.output_dir}/{args.model}_task_{args.tasknum}_best_{round(best_test_acc,3)}_TACL.pt")
+                torch.save(model.state_dict(), f"{args.output_dir}/{args.model}_task_{args.tasknum}_best_TACL-{args.tag}.pt")
             else:
                 patient_epochs += 1 * args.test_interval
             print(f"\tCurrent best epoch : {best_epoch} \t Best test acc. : {round(best_test_acc,3)}")
@@ -118,7 +118,7 @@ def test(args, model, test_loader):
         for batch in tqdm(test_loader):
             imgs = torch.Tensor(batch[0]).to(args.device)
             labels = torch.Tensor(batch[1]).to(args.device)
-            scores = model(imgs)
+            bbones_params, scores = model(imgs)
             loss = criterion(scores, labels)
             test_loss.append(loss.detach().cpu().numpy())
             test_labels.append(batch[1])

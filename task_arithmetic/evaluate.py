@@ -36,6 +36,7 @@ parser.add_argument('-midir', '--model-input-dir', type=str, default='./data')
 parser.add_argument('-t', '--tasknum', type=int)
 parser.add_argument('-tot', '--total-tasks', type=int)
 parser.add_argument('-scoef', '--scaling-coef', type=float, default=0.25)
+parser.add_argument('--tag', type=str, default="")
 args = parser.parse_args()
 
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
@@ -82,7 +83,7 @@ for task_idx in range(args.total_tasks):
     print(f"Length of {task_idx}th test dataset", len(testset))
     test_all_tasks.append(testloader)
 
-final_model = get_model(args, pretrained_path, list_of_task_checkpoints=[f"{args.model_input_dir}/{args.model}_task_{i}_best_TACL.pt" for i in range(args.total_tasks)], scaling_coef=args.scaling_coef)
+final_model = get_model(args, pretrained_path, list_of_task_checkpoints=[f"{args.model_input_dir}/{args.model}_task_{i}_best_TACL-{args.tag}.pt" for i in range(args.total_tasks)], scaling_coef=args.scaling_coef)
 # print(final_model)
 for task_idx, loader in enumerate(test_all_tasks):
     print(task_idx)

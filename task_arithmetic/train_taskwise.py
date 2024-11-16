@@ -24,6 +24,7 @@ parser.add_argument('--device', type=str, default="cuda:0")
 parser.add_argument('--model', type=str, default="resnet18")
 parser.add_argument('--syn', action="store_true")
 parser.add_argument('-expt', '--expt-type', type=str, default=None) # TODO : can also be "FShotTuning"
+parser.add_argument('--tag', type=str, default="")
 
 # parser.add_argument('--seed', type=int, default=42)
 
@@ -48,7 +49,7 @@ args.output_dir = f'{args.output_dir}/{args.model}'
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir, exist_ok=True)
 
-sys.stdout = Logger(os.path.join(args.output_dir, f'logs-task-{args.tasknum}-TACL.txt'))
+sys.stdout = Logger(os.path.join(args.output_dir, f'logs-task-{args.tasknum}-TACL-{args.tag}.txt'))
 
 # img_processor = AutoImageProcessor.from_pretrained("google/vit-base-patch16-224")
 if args.syn == True:
@@ -73,9 +74,9 @@ model = ResNet(num_classes=args.num_classes, device=args.device, model=args.mode
 
 if args.expt_type == 'KLDivLoss':
     model_pretrained = ResNet(num_classes=args.num_classes, device=args.device, model=args.model)
-    model.fit(args, model, trainloader, testloader, model_pretrained)
+    fit(args, model, trainloader, testloader, model_pretrained)
 else:
-    model.fit(args, model, trainloader, testloader)
+    fit(args, model, trainloader, testloader)
 
 end_time = time.time()
 
