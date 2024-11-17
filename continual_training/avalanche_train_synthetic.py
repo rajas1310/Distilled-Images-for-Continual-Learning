@@ -27,7 +27,7 @@ parser.add_argument('-wd', '--weight-decay', type=float, default=1e-6)
 # parser.add_argument('-p', '--patience', type=int, default=10)
 parser.add_argument('-nw','--num-workers', type=int, default=0)
 # parser.add_argument('--test-interval', type=int, default=1)
-parser.add_argument('--device', type=str, default="cpu")
+parser.add_argument('--device', type=str, default="cuda:0")
 # parser.add_argument('--seed', type=int, default=42)
 
 parser.add_argument('--strategy', type=str, default="replay")
@@ -35,9 +35,9 @@ parser.add_argument('--strategy', type=str, default="replay")
 parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='../../data')
 parser.add_argument('-odir', '--output-dir', type=str, default='./output')
-args = parser.parse_args()
 
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
+parser.add_argument('-ipc', '--ipc', type=int, default=20)
 args = parser.parse_args()
 
 
@@ -60,7 +60,7 @@ model = ResNet(args)
 scenario = CustomSyntheticDataset(args).get_scenario()
 
 text_logger = TextLogger(
-    open(os.path.join(args.output_dir, f'log_{args.dataset}_{args.strategy}_epoch_{args.epochs}_lr_{args.lr}_wd_{args.weight_decay}.txt'), 'a')
+    open(os.path.join(args.output_dir, f'log_{args.dataset}_{args.strategy}_epoch_{args.epochs}_lr_{args.lr}_wd_{args.weight_decay}_ipc_{args.ipc}_bs_{args.batch_size}.txt'), 'a')
 )
 interactive_logger = InteractiveLogger()
 
