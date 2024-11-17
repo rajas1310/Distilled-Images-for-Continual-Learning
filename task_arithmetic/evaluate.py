@@ -7,7 +7,6 @@ from apply_ta import get_model
 import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from transformers import AutoImageProcessor
 import torch
 from logger_utils import Logger
 import sys, os, time
@@ -37,7 +36,6 @@ parser.add_argument('-t', '--tasknum', type=int)
 parser.add_argument('-tot', '--total-tasks', type=int)
 parser.add_argument('-scoef', '--scaling-coef', type=float, default=0.25)
 parser.add_argument('--tag', type=str, default="")
-args = parser.parse_args()
 
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
 args = parser.parse_args()
