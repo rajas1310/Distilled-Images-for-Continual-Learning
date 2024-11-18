@@ -27,13 +27,13 @@ parser.add_argument('--weights', type=str)
 parser.add_argument('--syn', action="store_true")
 parser.add_argument('-expt', '--expt-type', type=str, default=None) # TODO : can also be "FShotTuning"
 parser.add_argument('--tag', type=str, default="")
+parser.add_argument('-t', '--tasknum', type=str, default="")
 
 # parser.add_argument('--seed', type=int, default=42)
 
 parser.add_argument('-d', '--dataset', type=str, default='cifar10')
 parser.add_argument('-ddir', '--data-dir', type=str, default='./data')
 parser.add_argument('-odir', '--output-dir', type=str, default='./output')
-parser.add_argument('-t', '--tasknum', type=int)
 parser.add_argument('-nc', '--num-classes', type=int, default=None)
 args = parser.parse_args()
 
@@ -114,5 +114,5 @@ testloader = torch.utils.data.DataLoader(
         testset, batch_size=args.batch_size, shuffle=False,
         num_workers=args.num_workers
     )
-
+test(args, model, testloader)
 fit(args, model, trainloader, testloader)
