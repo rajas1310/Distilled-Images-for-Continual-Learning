@@ -63,7 +63,7 @@ dataset_stats_dict = {  'cifar10' : {   'mean' : (0.491, 0.482, 0.447),
 
 transform = transforms.Compose([
                         transforms.ToTensor(),
-                        transforms.RandomHorizontalFlip(),
+                        #transforms.RandomHorizontalFlip(),
                         transforms.Normalize(mean=dataset_stats_dict[args.dataset]['mean'], std=dataset_stats_dict[args.dataset]['std'])
                         ])
 if args.dataset == "cifar10":

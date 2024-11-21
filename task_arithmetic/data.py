@@ -66,7 +66,7 @@ class ImageDataset(Dataset):
         """
         if split == 'train':
             self.transform =  transforms.Compose([
-                        transforms.RandomHorizontalFlip(),
+                        # transforms.RandomHorizontalFlip(),
                         transforms.ToTensor(),
                         transforms.Normalize(mean=self.data_stats_dict['mean'], std=self.data_stats_dict['std'])
                         ]) 
