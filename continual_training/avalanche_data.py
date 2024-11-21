@@ -4,7 +4,7 @@ from avalanche.benchmarks.scenarios.deprecated.generators import nc_benchmark
 import torch
 import torch.nn as nn
 import os
-from torch.utils.data import Subset
+from torch.utils.data import DataLoader
 class ResNet(nn.Module):
     def __init__(self, args, model_name='resnet18'):
         super().__init__()
@@ -36,64 +36,93 @@ class CustomSyntheticDataset():
         self.args = args
 
         if args.dataset == 'cifar10':
-            image_mean = (0.491, 0.482, 0.447)
-            image_std = (0.202, 0.199, 0.201)
             self.train_transform =  transforms.Compose([
-                transforms.RandomHorizontalFlip(),
+                transforms.Resize((32, 32)),
+                transforms.ToTensor()
+            ])
+            self.trainset = datasets.ImageFolder(
+                root=self.args.data_dir,
+                transform=self.train_transform
+            )
+            loader = DataLoader(self.trainset, batch_size=64, shuffle=False, num_workers=0)
+
+            train_mean = torch.zeros(3)
+            train_std = torch.zeros(3)
+
+            for images, _ in loader:
+                images = images.view(images.size(0), images.size(1), -1)
+                train_mean += images.mean(2).sum(0)
+                train_std += images.std(2).sum(0)
+
+            train_mean /= len(self.trainset)
+            train_std /= len(self.trainset)
+
+            self.train_transform =  transforms.Compose([
+                transforms.Resize((32, 32)),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=image_mean, std=image_std)
-            ]) 
+                transforms.Normalize(mean=train_mean, std=train_std)
+            ])
+            self.trainset = datasets.ImageFolder(
+                root=self.args.data_dir,
+                transform=self.train_transform
+            )
+
+            test_mean = (0.491, 0.482, 0.447)
+            test_std = (0.202, 0.199, 0.201)
             self.test_transform = transforms.Compose([
                 transforms.ToTensor(),
-                transforms.Normalize(mean=image_mean, std=image_std)
+                transforms.Normalize(mean=test_mean, std=test_std)
             ])
+            self.testset = datasets.CIFAR10(root="../../cifar10", train=False, download=True, transform=self.test_transform)
+
+            self.task_dict = {0:2, 1:2, 2:2, 3:2, 4:2}
+
         elif args.dataset == 'mnist':
-            image_mean = (0.1307,0.1307,0.1307)
-            image_std = (0.3081,0.3081,0.3081)
             self.train_transform =  transforms.Compose([
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=image_mean, std=image_std)
+                transforms.Resize((28, 28)),
+                transforms.ToTensor()
             ])
+            self.trainset = datasets.ImageFolder(
+                root=self.args.data_dir,
+                transform=self.train_transform
+            )
+            loader = DataLoader(self.trainset, batch_size=64, shuffle=False, num_workers=0)
+
+            train_mean = torch.zeros(3)
+            train_std = torch.zeros(3)
+
+            for images, _ in loader:
+                images = images.view(images.size(0), images.size(1), -1)
+                train_mean += images.mean(2).sum(0)
+                train_std += images.std(2).sum(0)
+
+            train_mean /= len(self.trainset)
+            train_std /= len(self.trainset)
+
+            self.train_transform =  transforms.Compose([
+                transforms.Resize((28, 28)),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=train_mean, std=train_std)
+            ])
+            self.trainset = datasets.ImageFolder(
+                root=self.args.data_dir,
+                transform=self.train_transform
+            )
+
+            test_mean = (0.1307,0.1307,0.1307)
+            test_std = (0.3081,0.3081,0.3081)
             self.test_transform = transforms.Compose([
                 transforms.Grayscale(num_output_channels=3),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=image_mean, std=image_std)
+                transforms.Normalize(mean=test_mean, std=test_std)
             ])
+            self.testset = datasets.MNIST(root="../../mnist", train=False, download=True, transform=self.test_transform)
+
+            self.task_dict = {0:2, 1:2, 2:2, 3:2, 4:2}
 
         elif args.dataset == 'imagenet':
             image_mean = (0.485, 0.456, 0.406)
             image_std = (0.229, 0.224, 0.225)
-
-        
-        
-        self.set_data_variables()
-
-    def set_data_variables(self):
-        if self.args.dataset == 'cifar10':
-            self.trainset = datasets.ImageFolder(
-                root=self.args.data_dir,
-                transform=self.train_transform
-            )
-
-            self.testset = datasets.CIFAR10(
-                root="../../cifar10", train=False, download=True,
-                transform=self.test_transform
-            )
-
-            self.task_dict = {0:2, 1:2, 2:2, 3:2, 4:2}
-
-        elif self.args.dataset == 'mnist':
-            self.trainset = datasets.ImageFolder(
-                root=self.args.data_dir,
-                transform=self.train_transform
-            )
-            self.testset = datasets.MNIST(root="../../mnist", train=False, download=True,
-                                   transform=self.test_transform)
-            self.task_dict = {0:2, 1:2, 2:2, 3:2, 4:2}
-
-        elif self.args.dataset == 'imagenet':
-            pass
 
 
     def get_scenario(self):
