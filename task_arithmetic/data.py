@@ -50,9 +50,11 @@ class ImageDataset(Dataset):
     def __init__(self, args, image_list, label_list, split='train'):
         super().__init__()
         self.args = args
+        self.split = split
         self.data_stats_dict = dataset_stats_dict[args.dataset]
         self.image_list = image_list #glob.glob(f'{args.data_dir}/task*/*/*')
         self.label_list = label_list #[int(Path(x).parent.stem) for x in self.image_list]
+        # print(image_list)
         """
         if args.dataset == 'cifar10':
             image_mean = (0.491, 0.482, 0.447)
@@ -82,15 +84,19 @@ class ImageDataset(Dataset):
     def __getitem__(self, idx):
         if self.args.dataset == 'mnist':
           self.image_list[idx] = torch.stack((self.image_list[idx],self.image_list[idx],self.image_list[idx]), dim=-1)
+        
+        if self.args.syn and self.split == 'train':
+          img = self.transform(Image.open(self.image_list[idx]).convert('RGB'))
+        else:
+          img = self.transform(Image.fromarray(np.array(self.image_list[idx])))
 
-        # img = self.transform(Image.open(self.image_list[idx]).convert('RGB'))
-        img = self.transform(Image.fromarray(np.array(self.image_list[idx])))
         label = self.label_list[idx]
         return img, label
     
 class SyntheticTrainDataset():
-    def __init__(self, args, task_dict=task_dict):
+    def __init__(self, args, task_dict=task_dict, include_previous_tasks = False):
         self.args = args
+        self.include_previous_tasks = include_previous_tasks
         # self.img_processor = img_processor
         self.task_dict = task_dict[args.dataset]
         self.label2int = self.get_label2int()
@@ -110,10 +116,36 @@ class SyntheticTrainDataset():
 
     def get_list(self):
         # trainset
-        for image_path in glob.glob(f'{self.args.data_dir}/Task*/*/.png'):
-            self.train_imgs.append(image_path)
-            label = int(Path(image_path).parent.stem)
-            self.train_labels.append(label)
+        start_task = 0 if self.include_previous_tasks else self.args.tasknum
+        end_task = self.args.tasknum + 1
+        for i in range(start_task, end_task):
+          for image_path in glob.glob(f'{self.args.data_dir}/task{i}/*/*.png'):
+              self.train_imgs.append(image_path)
+              label = int(Path(image_path).parent.stem)
+              self.train_labels.append(label)
+        
+        """if self.args.dataset == 'cifar10':
+          valid_train_labels = [label2int['cifar10'][item] for item in self.task_dict[self.args.tasknum]]
+
+          if self.include_previous_tasks:
+              valid_test_labels = [label2int['cifar10'][item] for x in range(self.args.tasknum + 1) for item in self.task_dict[x]]
+          else:
+              valid_test_labels = valid_train_labels
+        
+        elif self.args.dataset == 'mnist':
+          valid_train_labels = self.task_dict[self.args.tasknum]
+
+          if self.include_previous_tasks:
+              valid_test_labels = [item for x in range(self.args.tasknum + 1) for item in self.task_dict[x]]
+          else:
+              valid_test_labels = valid_train_labels
+        
+        #for train
+        for idx,label in tqdm(enumerate(self.train_labels), desc="Filtering train-samples as per task", ncols=25):
+            if label in valid_train_labels:
+                self.train_imgs.append(self.train_imgs[idx])
+                self.train_labels.append(self.train_labels[idx])"""
+
 
     def get_dataset(self):
         print(f"\nINFO : Loading {self.args.dataset} Synthetic TRAIN ({len(self.train_labels)}) data for TASK {self.args.tasknum} ... ")
@@ -194,7 +226,6 @@ class TaskwiseOriginalDataset():
 
             test_imgs = self.testset.test_data
             test_labels = self.testset.test_labels
-
 
             valid_train_labels = self.task_dict[self.args.tasknum]
 
