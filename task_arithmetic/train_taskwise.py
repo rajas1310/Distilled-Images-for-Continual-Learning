@@ -45,7 +45,7 @@ if args.num_classes == None:
 
 print(args)
 
-args.output_dir = f'{args.output_dir}/{args.model}'
+args.output_dir = f'{args.output_dir}/{args.model}_{args.dataset}'
 if not os.path.exists(args.output_dir):
     os.makedirs(args.output_dir, exist_ok=True)
 
