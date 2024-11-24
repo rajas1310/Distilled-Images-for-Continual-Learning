@@ -61,11 +61,12 @@ dataset_stats_dict = {  'cifar10' : {   'mean' : (0.491, 0.482, 0.447),
                                     }
                     }
 
-transform = transforms.Compose([
-                        transforms.ToTensor(),
-                        #transforms.RandomHorizontalFlip(),
-                        transforms.Normalize(mean=dataset_stats_dict[args.dataset]['mean'], std=dataset_stats_dict[args.dataset]['std'])
-                        ])
+transforms_list = [transforms.ToTensor(),
+                   #transforms.RandomHorizontalFlip(),
+                   transforms.Normalize(mean=dataset_stats_dict[args.dataset]['mean'], std=dataset_stats_dict[args.dataset]['std'])
+                  ]
+
+transform = transforms.Compose(transforms_list)
 if args.dataset == "cifar10":
     trainset = datasets.CIFAR10(
             root="/content/data/", train=True, download=True,
@@ -94,10 +95,14 @@ class_counts = {}  # Keep track of how many samples we've taken from each class
 
 for i in range(len(trainset)):
     image, label = trainset[i]
+    # if args.dataset == 'mnist':
+    #     image = torch.squeeze(torch.stack((image,image,image), dim=1))
+        
     if label not in class_counts:
         class_counts[label] = 0
 
     if class_counts[label] < num_samples_per_class:
+        print(image.shape)
         sampled_images.append((image, label))
         class_counts[label] += 1
 

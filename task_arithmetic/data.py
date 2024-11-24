@@ -95,9 +95,10 @@ class ImageDataset(Dataset):
         return img, label
     
 class SyntheticTrainDataset():
-    def __init__(self, args, task_dict=task_dict, include_previous_tasks = False):
+    def __init__(self, args, task_dict=task_dict, include_previous_tasks = False, ipc=None):
         self.args = args
         self.include_previous_tasks = include_previous_tasks
+        self.ipc = ipc
         # self.img_processor = img_processor
         self.task_dict = task_dict[args.dataset]
         self.label2int = self.get_label2int()
@@ -116,14 +117,20 @@ class SyntheticTrainDataset():
         return label2int
 
     def get_list(self):
+        sample_count = {}
+
         # trainset
         start_task = 0 if self.include_previous_tasks else self.args.tasknum
         end_task = self.args.tasknum + 1
         for i in range(start_task, end_task):
           for image_path in glob.glob(f'{self.args.data_dir}/task{i}/*/*.png'):
-              self.train_imgs.append(image_path)
               label = int(Path(image_path).parent.stem)
+              sample_count[label] = sample_count[label] + 1 if label in sample_count.keys() else 1
+              if self.ipc != None and sample_count[label] == self.ipc+1:
+                  continue
               self.train_labels.append(label)
+              self.train_imgs.append(image_path)
+              
         
         """if self.args.dataset == 'cifar10':
           valid_train_labels = [label2int['cifar10'][item] for item in self.task_dict[self.args.tasknum]]
@@ -154,11 +161,11 @@ class SyntheticTrainDataset():
         return ImageDataset(self.args, self.train_imgs, self.train_labels, 'train')
 
 class TaskwiseOriginalDataset():
-    def __init__(self, args, split:str='test', task_dict=task_dict, include_previous_tasks = False):
+    def __init__(self, args, split:str='test', task_dict=task_dict, include_previous_tasks = False, ipc = None):
         self.args = args
-        # self.img_processor = img_processor
         self.split = split
         self.include_previous_tasks = include_previous_tasks
+        self.ipc = ipc
         self.data_stats_dict = dataset_stats_dict[args.dataset]
         self.task_dict = task_dict[args.dataset]
         self.label2int = self.get_label2int()
@@ -177,8 +184,10 @@ class TaskwiseOriginalDataset():
         return label2int
     
     def get_lists(self):
+        sample_count = {}
+
         self.train_transform = transforms.Compose([
-                                transforms.RandomHorizontalFlip(),
+                                # transforms.RandomHorizontalFlip(),
                                 transforms.ToTensor(),
                                 transforms.Normalize(mean=self.data_stats_dict['mean'], std=self.data_stats_dict['std'])
                                 ]) 
@@ -240,8 +249,13 @@ class TaskwiseOriginalDataset():
             for idx,label in tqdm(enumerate(train_labels), desc="Filtering train-samples as per task", ncols=25):
                 
                 if label in valid_train_labels:
+                    sample_count[label] = sample_count[label] + 1 if label in sample_count.keys() else 1
+                    if self.ipc != None and sample_count[label] == self.ipc+1:
+                        continue
                     self.train_imgs.append(train_imgs[idx])
                     self.train_labels.append(train_labels[idx])
+                    
+
 
         #for test
         for idx,label in tqdm(enumerate(test_labels), desc="Filtering test-samples as per task", ncols=25):
