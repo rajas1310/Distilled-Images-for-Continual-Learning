@@ -65,6 +65,8 @@ transforms_list = [transforms.ToTensor(),
                    #transforms.RandomHorizontalFlip(),
                    transforms.Normalize(mean=dataset_stats_dict[args.dataset]['mean'], std=dataset_stats_dict[args.dataset]['std'])
                   ]
+if args.dataset == "mnist":
+    transforms_list.append(transforms.Lambda(lambda x: x.repeat(3, 1, 1)))
 
 transform = transforms.Compose(transforms_list)
 if args.dataset == "cifar10":
@@ -102,7 +104,6 @@ for i in range(len(trainset)):
         class_counts[label] = 0
 
     if class_counts[label] < num_samples_per_class:
-        print(image.shape)
         sampled_images.append((image, label))
         class_counts[label] += 1
 
