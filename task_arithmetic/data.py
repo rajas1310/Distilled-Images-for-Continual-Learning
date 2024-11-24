@@ -83,7 +83,7 @@ class ImageDataset(Dataset):
         return len(self.label_list)
 
     def __getitem__(self, idx):
-        if self.args.dataset == 'mnist':
+        if self.args.dataset == 'mnist' and (not self.args.syn or self.split=='test'):
           self.image_list[idx] = torch.stack((self.image_list[idx],self.image_list[idx],self.image_list[idx]), dim=-1)
         
         if self.args.syn and self.split == 'train':
