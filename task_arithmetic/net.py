@@ -76,7 +76,7 @@ def fit(args, model, train_loader, test_loader, pretrained_model=None):
               # print("\nKLDIV : ", loss_kldiv)
               loss = criterion(scores, labels)
               # print("Loss: ", loss_kldiv, loss)
-              loss = 0.4*loss_kldiv + 0.6*loss
+              loss = 0.6*loss_kldiv + 0.4*loss
             else:
               loss = criterion(scores, labels)
 

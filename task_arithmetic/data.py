@@ -70,7 +70,7 @@ class ImageDataset(Dataset):
             self.transform =  transforms.Compose([
                         # transforms.RandomHorizontalFlip(),
                         transforms.ToTensor(),
-                        transforms.Resize((28,28)),
+                        transforms.Resize((32,32)),
                         transforms.Normalize(mean=self.data_stats_dict['mean'], std=self.data_stats_dict['std'])
                         ]) 
         elif split == 'test':
