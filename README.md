@@ -1,4 +1,9 @@
-# 💾 D<sup>4</sup>M: Dataset Distillation via Disentangled Diffusion Model
+This repository is forked from [D4M](https://github.com/suduo94/D4M).
+We have used the D4M architecture to generate synthetic images for the following tasks:
+- Exploring the effect of using images with features distilled from orignal dataset to continually train ResNet18/50. Studied the SOTA dataset distillation approach, D4M, that uses Latent Diffusion Models to generate distilled images.
+- Demonstrating that synthetic datasets significantly reduce training time by 59% while achieving comparable accuracy across continual learning methods like Experience Replay, A-GEM, and Task Arithmetic.
+
+## 💾 D<sup>4</sup>M: Dataset Distillation via Disentangled Diffusion Model
 
 ## 💥 Stellar Features
 🎯 Distilling Dataset in an Optimization-Free manner. <br>
